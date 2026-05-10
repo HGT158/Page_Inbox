@@ -44,7 +44,7 @@ function bindEvents() {
 
 async function loadItems() {
   const result = await chrome.storage.local.get({ [ITEMS_KEY]: [] });
-  items = result[ITEMS_KEY].map(normalizeItem);
+  items = Array.isArray(result[ITEMS_KEY]) ? result[ITEMS_KEY].map(normalizeItem) : [];
 }
 
 async function persistItems() {
@@ -56,7 +56,7 @@ async function saveCurrentTab() {
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.url || isUnsupportedUrl(tab.url)) {
+    if (!isSupportedWebUrl(tab?.url)) {
       showMessage("这个页面不能被保存。");
       return;
     }
@@ -228,8 +228,14 @@ function renderItem(item) {
   title.textContent = item.title || item.url;
   title.href = item.url;
   url.textContent = item.url;
-  favicon.src = item.faviconUrl || faviconFromUrl(item.url);
-  favicon.hidden = !favicon.src;
+  const faviconUrl = item.faviconUrl || faviconFromUrl(item.url);
+  if (faviconUrl) {
+    favicon.src = faviconUrl;
+    favicon.hidden = false;
+  } else {
+    favicon.removeAttribute("src");
+    favicon.hidden = true;
+  }
   description.textContent = item.description || "暂无描述";
   description.dataset.empty = String(!item.description);
   tags.value = item.tags.join(", ");
@@ -386,7 +392,7 @@ function normalizeUrl(rawUrl) {
   try {
     const hasProtocol = /^[a-z][a-z0-9+.-]*:/i.test(rawUrl);
     const url = new URL(hasProtocol ? rawUrl : `https://${rawUrl}`);
-    if (!["http:", "https:"].includes(url.protocol)) {
+    if (!isSupportedWebUrl(url.href)) {
       return "";
     }
     return url.href;
@@ -404,8 +410,12 @@ function faviconFromUrl(url) {
   }
 }
 
-function isUnsupportedUrl(url) {
-  return /^(chrome|edge|about|devtools):/i.test(url);
+function isSupportedWebUrl(url) {
+  try {
+    return ["http:", "https:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
 }
 
 function today() {

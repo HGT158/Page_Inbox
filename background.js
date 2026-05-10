@@ -20,7 +20,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 
   const url = info.linkUrl || info.pageUrl || tab?.url;
-  if (!url || isUnsupportedUrl(url)) {
+  if (!isSupportedWebUrl(url)) {
     return;
   }
 
@@ -79,7 +79,7 @@ async function readPageMeta(tabId) {
 
 async function saveItem(item) {
   const result = await chrome.storage.local.get({ [ITEMS_KEY]: [] });
-  const items = result[ITEMS_KEY];
+  const items = Array.isArray(result[ITEMS_KEY]) ? result[ITEMS_KEY] : [];
   const existingIndex = items.findIndex((saved) => saved.url === item.url);
   const now = new Date().toISOString();
 
@@ -111,6 +111,10 @@ async function saveItem(item) {
   await chrome.storage.local.set({ [ITEMS_KEY]: items });
 }
 
-function isUnsupportedUrl(url) {
-  return /^(chrome|edge|about|devtools):/i.test(url);
+function isSupportedWebUrl(url) {
+  try {
+    return ["http:", "https:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
 }
