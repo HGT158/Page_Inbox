@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>网页稍后处理</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>稍后处理</h1>
+          <p id="countText">0 个待处理</p>
+        </div>
+        <button id="saveCurrentButton" class="primary" type="button">保存当前页</button>
+      </header>
+
+      <section class="quick-add" aria-label="手动添加">
+        <input id="manualUrlInput" type="url" placeholder="粘贴网页链接">
+        <button id="manualAddButton" type="button">添加</button>
+      </section>
+
+      <section class="controls" aria-label="筛选">
+        <input id="searchInput" type="search" placeholder="搜索标题、描述、链接或标签">
+        <select id="statusFilter" aria-label="状态筛选">
+          <option value="all">全部</option>
+          <option value="inbox">待处理</option>
+          <option value="done">已处理</option>
+        </select>
+      </section>
+
+      <section id="tagFilters" class="tag-filters" aria-label="标签筛选"></section>
+      <section id="message" class="message" hidden></section>
+      <section id="list" class="list" aria-live="polite"></section>
+
+      <footer class="footer">
+        <button id="exportJsonButton" type="button">导出 JSON</button>
+        <button id="exportMarkdownButton" type="button">导出 Markdown</button>
+        <button id="clearDoneButton" type="button">清理已处理</button>
+      </footer>
+    </main>
+
+    <template id="itemTemplate">
+      <article class="item">
+        <div class="item-head">
+          <img class="item-favicon" alt="">
+          <div class="item-title-wrap">
+            <a class="item-title" target="_blank" rel="noreferrer"></a>
+            <p class="item-url"></p>
+          </div>
+        </div>
+        <p class="item-description"></p>
+        <input class="item-tags" type="text" placeholder="标签，用逗号分隔">
+        <textarea class="item-note" rows="2" placeholder="备注或下一步动作"></textarea>
+        <div class="item-actions">
+          <button class="status-button" type="button"></button>
+          <button class="markdown-button" type="button">复制 Markdown</button>
+          <button class="delete-button danger" type="button">删除</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "网页稍后处理",
+  "description": "轻量网页收集箱：一键保存、标签整理、稍后处理、复制 Markdown 链接和导出。",
+  "version": "0.2.0",
+  "action": {
+    "default_title": "网页稍后处理",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "scripting",
+    "storage"
+  ]
+}
