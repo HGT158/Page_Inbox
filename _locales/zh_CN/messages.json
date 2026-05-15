@@ -124,5 +124,11 @@
   },
   "contextMenuSaveLink": {
     "message": "存入网页稍后处理"
+  },
+  "confirmDelete": {
+    "message": "确定删除此项？"
+  },
+  "messageStorageError": {
+    "message": "保存失败，请重试。"
   }
 }

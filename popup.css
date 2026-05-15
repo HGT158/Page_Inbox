@@ -12,6 +12,48 @@
   --shadow: 0 8px 22px rgba(24, 32, 42, 0.08);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #1a1a2e;
+    --panel: #252540;
+    --text: #e0e0e0;
+    --muted: #9ca3af;
+    --line: #3a3a5c;
+    --accent: #26a69a;
+    --accent-hover: #2cc4b6;
+    --danger: #ef5350;
+    --tag-bg: #1c3a38;
+    --shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+  }
+
+  .primary {
+    color: #1a1a2e;
+  }
+
+  .message {
+    background: #2d2410;
+    color: #f0c75e;
+    border-color: #5c4a1f;
+  }
+
+  .status-button[data-status="done"] {
+    background: #1a3a2a;
+    color: #4caf84;
+    border-color: #2a5a3a;
+  }
+
+  input,
+  select,
+  textarea {
+    background: #2a2a45;
+  }
+
+  .item-description[data-empty="true"] {
+    color: #6b7280;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -208,13 +250,6 @@ textarea:focus {
   grid-template-columns: 1fr;
   gap: 0;
   align-items: start;
-}
-
-.item-favicon {
-  width: 20px;
-  height: 20px;
-  margin-top: 2px;
-  border-radius: 4px;
 }
 
 .item-title-wrap {

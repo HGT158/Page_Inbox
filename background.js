@@ -1,4 +1,4 @@
-const ITEMS_KEY = "laterbox.items.v1";
+importScripts("shared.js");
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -29,7 +29,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         title: info.selectionText || info.linkUrl,
         url,
         description: "",
-        faviconUrl: "",
         source: "context-link"
       }
     : await collectCurrentPage(tab);
@@ -44,34 +43,8 @@ async function collectCurrentPage(tab) {
     title: pageMeta.title || tab?.title || tab?.url,
     url: tab?.url || pageMeta.url,
     description: pageMeta.description || "",
-    faviconUrl: "",
     source: "context-page"
   };
-}
-
-async function readPageMeta(tabId) {
-  if (!tabId) {
-    return {};
-  }
-
-  try {
-    const [injection] = await chrome.scripting.executeScript({
-      target: { tabId },
-      func: () => {
-        const meta = (name) => document.querySelector(`meta[name="${name}"], meta[property="${name}"]`)?.content?.trim() || "";
-
-        return {
-          title: document.title,
-          url: location.href,
-          description: meta("description") || meta("og:description") || meta("twitter:description")
-        };
-      }
-    });
-
-    return injection?.result || {};
-  } catch {
-    return {};
-  }
 }
 
 async function saveItem(item) {
@@ -85,7 +58,6 @@ async function saveItem(item) {
       ...items[existingIndex],
       title: item.title || items[existingIndex].title,
       description: item.description || items[existingIndex].description || "",
-      faviconUrl: "",
       status: "inbox",
       updatedAt: now
     };
@@ -95,7 +67,6 @@ async function saveItem(item) {
       title: item.title || item.url,
       url: item.url,
       description: item.description || "",
-      faviconUrl: "",
       tags: [],
       note: "",
       status: "inbox",
@@ -105,13 +76,9 @@ async function saveItem(item) {
     });
   }
 
-  await chrome.storage.local.set({ [ITEMS_KEY]: items });
-}
-
-function isSupportedWebUrl(url) {
   try {
-    return ["http:", "https:"].includes(new URL(url).protocol);
+    await chrome.storage.local.set({ [ITEMS_KEY]: items });
   } catch {
-    return false;
+    // Silently fail — the popup will show errors on its own writes.
   }
 }

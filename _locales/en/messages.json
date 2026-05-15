@@ -124,5 +124,11 @@
   },
   "contextMenuSaveLink": {
     "message": "Save to Page Inbox"
+  },
+  "confirmDelete": {
+    "message": "Delete this item?"
+  },
+  "messageStorageError": {
+    "message": "Failed to save. Please try again."
   }
 }

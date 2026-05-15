@@ -1,5 +1,3 @@
-const ITEMS_KEY = "laterbox.items.v1";
-
 const els = {
   countText: document.querySelector("#countText"),
   saveCurrentButton: document.querySelector("#saveCurrentButton"),
@@ -71,7 +69,11 @@ async function loadItems() {
 }
 
 async function persistItems() {
-  await chrome.storage.local.set({ [ITEMS_KEY]: items });
+  try {
+    await chrome.storage.local.set({ [ITEMS_KEY]: items });
+  } catch {
+    showMessage(t("messageStorageError"));
+  }
 }
 
 async function saveCurrentTab() {
@@ -84,38 +86,16 @@ async function saveCurrentTab() {
       return;
     }
 
-    const meta = await readCurrentPageMeta(tab);
+    const meta = await readPageMeta(tab.id);
     await upsertItem({
       title: meta.title || tab.title || tab.url,
       url: meta.url || tab.url,
       description: meta.description || "",
-      faviconUrl: "",
       source: "popup"
     });
     showMessage(t("messageSavedCurrent"));
   } finally {
     els.saveCurrentButton.disabled = false;
-  }
-}
-
-async function readCurrentPageMeta(tab) {
-  try {
-    const [injection] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: () => {
-        const meta = (name) => document.querySelector(`meta[name="${name}"], meta[property="${name}"]`)?.content?.trim() || "";
-
-        return {
-          title: document.title,
-          url: location.href,
-          description: meta("description") || meta("og:description") || meta("twitter:description")
-        };
-      }
-    });
-
-    return injection?.result || {};
-  } catch {
-    return {};
   }
 }
 
@@ -135,7 +115,6 @@ async function addManualUrl() {
     title: url,
     url,
     description: "",
-    faviconUrl: "",
     source: "manual"
   });
   els.manualUrlInput.value = "";
@@ -151,7 +130,6 @@ async function upsertItem(item) {
       ...items[existingIndex],
       title: item.title || items[existingIndex].title,
       description: item.description || items[existingIndex].description || "",
-      faviconUrl: "",
       status: "inbox",
       updatedAt: now
     });
@@ -161,7 +139,6 @@ async function upsertItem(item) {
       title: item.title || item.url,
       url: item.url,
       description: item.description || "",
-      faviconUrl: "",
       tags: [],
       note: "",
       status: "inbox",
@@ -235,7 +212,6 @@ function renderItem(item) {
   const fragment = els.itemTemplate.content.cloneNode(true);
   localizeElement(fragment);
   const article = fragment.querySelector(".item");
-  const favicon = fragment.querySelector(".item-favicon");
   const title = fragment.querySelector(".item-title");
   const url = fragment.querySelector(".item-url");
   const description = fragment.querySelector(".item-description");
@@ -249,8 +225,6 @@ function renderItem(item) {
   title.textContent = item.title || item.url;
   title.href = item.url;
   url.textContent = item.url;
-  favicon.removeAttribute("src");
-  favicon.hidden = true;
   description.textContent = item.description || t("noDescription");
   description.dataset.empty = String(!item.description);
   tags.value = item.tags.join(", ");
@@ -268,7 +242,11 @@ function renderItem(item) {
     await navigator.clipboard.writeText(toMarkdownLink(item));
     showMessage(t("messageMarkdownCopied"));
   });
-  deleteButton.addEventListener("click", () => deleteItem(item.id));
+  deleteButton.addEventListener("click", () => {
+    if (confirm(t("confirmDelete"))) {
+      deleteItem(item.id);
+    }
+  });
 
   return fragment;
 }
@@ -377,7 +355,6 @@ function normalizeItem(item) {
   return {
     ...item,
     description: item.description || "",
-    faviconUrl: "",
     tags: Array.isArray(item.tags) ? item.tags : [],
     note: item.note || "",
     status: item.status || "inbox"
@@ -413,14 +390,6 @@ function normalizeUrl(rawUrl) {
     return url.href;
   } catch {
     return "";
-  }
-}
-
-function isSupportedWebUrl(url) {
-  try {
-    return ["http:", "https:"].includes(new URL(url).protocol);
-  } catch {
-    return false;
   }
 }
 
