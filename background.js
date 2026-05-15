@@ -3,13 +3,13 @@ const ITEMS_KEY = "laterbox.items.v1";
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "save-page",
-    title: "存入网页稍后处理",
+    title: chrome.i18n.getMessage("contextMenuSavePage"),
     contexts: ["page"]
   });
 
   chrome.contextMenus.create({
     id: "save-link",
-    title: "存入网页稍后处理",
+    title: chrome.i18n.getMessage("contextMenuSaveLink"),
     contexts: ["link"]
   });
 });
@@ -44,7 +44,7 @@ async function collectCurrentPage(tab) {
     title: pageMeta.title || tab?.title || tab?.url,
     url: tab?.url || pageMeta.url,
     description: pageMeta.description || "",
-    faviconUrl: pageMeta.faviconUrl || tab?.favIconUrl || "",
+    faviconUrl: "",
     source: "context-page"
   };
 }
@@ -59,14 +59,11 @@ async function readPageMeta(tabId) {
       target: { tabId },
       func: () => {
         const meta = (name) => document.querySelector(`meta[name="${name}"], meta[property="${name}"]`)?.content?.trim() || "";
-        const icon = Array.from(document.querySelectorAll("link[rel]"))
-          .find((link) => /\b(icon|apple-touch-icon)\b/i.test(link.rel || ""))?.href || "";
 
         return {
           title: document.title,
           url: location.href,
-          description: meta("description") || meta("og:description") || meta("twitter:description"),
-          faviconUrl: icon ? new URL(icon, location.href).href : ""
+          description: meta("description") || meta("og:description") || meta("twitter:description")
         };
       }
     });
@@ -88,7 +85,7 @@ async function saveItem(item) {
       ...items[existingIndex],
       title: item.title || items[existingIndex].title,
       description: item.description || items[existingIndex].description || "",
-      faviconUrl: item.faviconUrl || items[existingIndex].faviconUrl || "",
+      faviconUrl: "",
       status: "inbox",
       updatedAt: now
     };
@@ -98,7 +95,7 @@ async function saveItem(item) {
       title: item.title || item.url,
       url: item.url,
       description: item.description || "",
-      faviconUrl: item.faviconUrl || "",
+      faviconUrl: "",
       tags: [],
       note: "",
       status: "inbox",

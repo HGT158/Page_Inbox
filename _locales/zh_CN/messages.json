@@ -1,0 +1,128 @@
+{
+  "extensionName": {
+    "message": "网页稍后处理",
+    "description": "扩展名称"
+  },
+  "extensionDescription": {
+    "message": "轻量网页收集箱：保存网页、整理标签、稍后处理，并导出 Markdown 或 JSON。",
+    "description": "Microsoft Edge 加载项商店使用的简短描述"
+  },
+  "popupTitle": {
+    "message": "稍后处理"
+  },
+  "inboxCount": {
+    "message": "$COUNT$ 个待处理",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "saveCurrentButton": {
+    "message": "保存当前页"
+  },
+  "manualAddLabel": {
+    "message": "手动添加"
+  },
+  "manualUrlPlaceholder": {
+    "message": "粘贴网页链接"
+  },
+  "manualAddButton": {
+    "message": "添加"
+  },
+  "filterLabel": {
+    "message": "筛选"
+  },
+  "searchPlaceholder": {
+    "message": "搜索标题、描述、链接或标签"
+  },
+  "statusFilterLabel": {
+    "message": "状态筛选"
+  },
+  "statusAll": {
+    "message": "全部"
+  },
+  "statusInbox": {
+    "message": "待处理"
+  },
+  "statusDone": {
+    "message": "已处理"
+  },
+  "tagFilterLabel": {
+    "message": "标签筛选"
+  },
+  "exportJsonButton": {
+    "message": "导出 JSON"
+  },
+  "exportMarkdownButton": {
+    "message": "导出 Markdown"
+  },
+  "clearDoneButton": {
+    "message": "清理已处理"
+  },
+  "tagsPlaceholder": {
+    "message": "标签，用逗号分隔"
+  },
+  "notePlaceholder": {
+    "message": "备注或下一步动作"
+  },
+  "copyMarkdownButton": {
+    "message": "复制 Markdown"
+  },
+  "deleteButton": {
+    "message": "删除"
+  },
+  "allTags": {
+    "message": "全部标签"
+  },
+  "noDescription": {
+    "message": "暂无描述"
+  },
+  "moveBackButton": {
+    "message": "移回队列"
+  },
+  "markDoneButton": {
+    "message": "处理完成"
+  },
+  "messageUnsupportedPage": {
+    "message": "这个页面不能被保存。"
+  },
+  "messageSavedCurrent": {
+    "message": "已保存当前页面。"
+  },
+  "messageInvalidUrl": {
+    "message": "请输入有效链接。"
+  },
+  "messageAddedLink": {
+    "message": "已添加链接。"
+  },
+  "emptyNoMatches": {
+    "message": "没有匹配的网页。"
+  },
+  "emptyNoItems": {
+    "message": "还没有保存网页。"
+  },
+  "messageMarkdownCopied": {
+    "message": "Markdown 链接已复制。"
+  },
+  "messageNoDoneItems": {
+    "message": "没有已处理项目。"
+  },
+  "messageClearedDone": {
+    "message": "已清理 $COUNT$ 个已处理项目。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageNoExportItems": {
+    "message": "没有可导出的项目。"
+  },
+  "contextMenuSavePage": {
+    "message": "存入网页稍后处理"
+  },
+  "contextMenuSaveLink": {
+    "message": "存入网页稍后处理"
+  }
+}

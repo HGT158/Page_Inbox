@@ -205,8 +205,8 @@ textarea:focus {
 
 .item-head {
   display: grid;
-  grid-template-columns: 24px 1fr;
-  gap: 9px;
+  grid-template-columns: 1fr;
+  gap: 0;
   align-items: start;
 }
 

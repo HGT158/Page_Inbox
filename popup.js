@@ -22,9 +22,32 @@ let activeTag = "";
 init();
 
 async function init() {
+  localizeDocument();
   await loadItems();
   bindEvents();
   render();
+}
+
+function t(messageName, substitutions) {
+  return chrome.i18n.getMessage(messageName, substitutions) || messageName;
+}
+
+function localizeDocument() {
+  document.documentElement.lang = chrome.i18n.getUILanguage();
+  document.title = t("extensionName");
+  localizeElement(document);
+}
+
+function localizeElement(root) {
+  root.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n);
+  });
+  root.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    element.placeholder = t(element.dataset.i18nPlaceholder);
+  });
+  root.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+    element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
+  });
 }
 
 function bindEvents() {
@@ -57,7 +80,7 @@ async function saveCurrentTab() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!isSupportedWebUrl(tab?.url)) {
-      showMessage("这个页面不能被保存。");
+      showMessage(t("messageUnsupportedPage"));
       return;
     }
 
@@ -66,10 +89,10 @@ async function saveCurrentTab() {
       title: meta.title || tab.title || tab.url,
       url: meta.url || tab.url,
       description: meta.description || "",
-      faviconUrl: meta.faviconUrl || tab.favIconUrl || "",
+      faviconUrl: "",
       source: "popup"
     });
-    showMessage("已保存当前页面。");
+    showMessage(t("messageSavedCurrent"));
   } finally {
     els.saveCurrentButton.disabled = false;
   }
@@ -81,14 +104,11 @@ async function readCurrentPageMeta(tab) {
       target: { tabId: tab.id },
       func: () => {
         const meta = (name) => document.querySelector(`meta[name="${name}"], meta[property="${name}"]`)?.content?.trim() || "";
-        const icon = Array.from(document.querySelectorAll("link[rel]"))
-          .find((link) => /\b(icon|apple-touch-icon)\b/i.test(link.rel || ""))?.href || "";
 
         return {
           title: document.title,
           url: location.href,
-          description: meta("description") || meta("og:description") || meta("twitter:description"),
-          faviconUrl: icon ? new URL(icon, location.href).href : ""
+          description: meta("description") || meta("og:description") || meta("twitter:description")
         };
       }
     });
@@ -107,7 +127,7 @@ async function addManualUrl() {
 
   const url = normalizeUrl(rawUrl);
   if (!url) {
-    showMessage("请输入有效链接。");
+    showMessage(t("messageInvalidUrl"));
     return;
   }
 
@@ -115,11 +135,11 @@ async function addManualUrl() {
     title: url,
     url,
     description: "",
-    faviconUrl: faviconFromUrl(url),
+    faviconUrl: "",
     source: "manual"
   });
   els.manualUrlInput.value = "";
-  showMessage("已添加链接。");
+  showMessage(t("messageAddedLink"));
 }
 
 async function upsertItem(item) {
@@ -131,7 +151,7 @@ async function upsertItem(item) {
       ...items[existingIndex],
       title: item.title || items[existingIndex].title,
       description: item.description || items[existingIndex].description || "",
-      faviconUrl: item.faviconUrl || items[existingIndex].faviconUrl || "",
+      faviconUrl: "",
       status: "inbox",
       updatedAt: now
     });
@@ -141,7 +161,7 @@ async function upsertItem(item) {
       title: item.title || item.url,
       url: item.url,
       description: item.description || "",
-      faviconUrl: item.faviconUrl || "",
+      faviconUrl: "",
       tags: [],
       note: "",
       status: "inbox",
@@ -160,14 +180,14 @@ function render() {
   const filteredItems = getFilteredItems();
   const inboxCount = items.filter((item) => item.status !== "done").length;
 
-  els.countText.textContent = `${inboxCount} 个待处理`;
+  els.countText.textContent = t("inboxCount", String(inboxCount));
   renderTagFilters();
   els.list.replaceChildren();
 
   if (!filteredItems.length) {
     const empty = document.createElement("div");
     empty.className = "empty";
-    empty.textContent = items.length ? "没有匹配的网页。" : "还没有保存网页。";
+    empty.textContent = items.length ? t("emptyNoMatches") : t("emptyNoItems");
     els.list.append(empty);
     return;
   }
@@ -191,7 +211,7 @@ function renderTagFilters() {
   }
 
   els.tagFilters.hidden = false;
-  els.tagFilters.append(createTagFilterButton("全部标签", "", !activeTag));
+  els.tagFilters.append(createTagFilterButton(t("allTags"), "", !activeTag));
 
   for (const tag of tags) {
     els.tagFilters.append(createTagFilterButton(tag, tag, activeTag === tag));
@@ -213,6 +233,7 @@ function createTagFilterButton(label, tag, selected) {
 
 function renderItem(item) {
   const fragment = els.itemTemplate.content.cloneNode(true);
+  localizeElement(fragment);
   const article = fragment.querySelector(".item");
   const favicon = fragment.querySelector(".item-favicon");
   const title = fragment.querySelector(".item-title");
@@ -228,20 +249,14 @@ function renderItem(item) {
   title.textContent = item.title || item.url;
   title.href = item.url;
   url.textContent = item.url;
-  const faviconUrl = item.faviconUrl || faviconFromUrl(item.url);
-  if (faviconUrl) {
-    favicon.src = faviconUrl;
-    favicon.hidden = false;
-  } else {
-    favicon.removeAttribute("src");
-    favicon.hidden = true;
-  }
-  description.textContent = item.description || "暂无描述";
+  favicon.removeAttribute("src");
+  favicon.hidden = true;
+  description.textContent = item.description || t("noDescription");
   description.dataset.empty = String(!item.description);
   tags.value = item.tags.join(", ");
   note.value = item.note || "";
   statusButton.dataset.status = item.status;
-  statusButton.textContent = item.status === "done" ? "移回队列" : "处理完成";
+  statusButton.textContent = item.status === "done" ? t("moveBackButton") : t("markDoneButton");
 
   tags.addEventListener("change", () => updateItem(item.id, { tags: parseTags(tags.value) }));
   note.addEventListener("change", () => updateItem(item.id, { note: note.value.trim() }));
@@ -251,7 +266,7 @@ function renderItem(item) {
   });
   markdownButton.addEventListener("click", async () => {
     await navigator.clipboard.writeText(toMarkdownLink(item));
-    showMessage("Markdown 链接已复制。");
+    showMessage(t("messageMarkdownCopied"));
   });
   deleteButton.addEventListener("click", () => deleteItem(item.id));
 
@@ -305,19 +320,19 @@ function getFilteredItems() {
 async function clearDoneItems() {
   const doneCount = items.filter((item) => item.status === "done").length;
   if (!doneCount) {
-    showMessage("没有已处理项目。");
+    showMessage(t("messageNoDoneItems"));
     return;
   }
 
   items = items.filter((item) => item.status !== "done");
   await persistItems();
   render();
-  showMessage(`已清理 ${doneCount} 个已处理项目。`);
+  showMessage(t("messageClearedDone", String(doneCount)));
 }
 
 function exportJson() {
   if (!items.length) {
-    showMessage("没有可导出的项目。");
+    showMessage(t("messageNoExportItems"));
     return;
   }
 
@@ -326,7 +341,7 @@ function exportJson() {
 
 function exportMarkdown() {
   if (!items.length) {
-    showMessage("没有可导出的项目。");
+    showMessage(t("messageNoExportItems"));
     return;
   }
 
@@ -362,7 +377,7 @@ function normalizeItem(item) {
   return {
     ...item,
     description: item.description || "",
-    faviconUrl: item.faviconUrl || "",
+    faviconUrl: "",
     tags: Array.isArray(item.tags) ? item.tags : [],
     note: item.note || "",
     status: item.status || "inbox"
@@ -396,15 +411,6 @@ function normalizeUrl(rawUrl) {
       return "";
     }
     return url.href;
-  } catch {
-    return "";
-  }
-}
-
-function faviconFromUrl(url) {
-  try {
-    const pageUrl = new URL(url);
-    return `${pageUrl.origin}/favicon.ico`;
   } catch {
     return "";
   }

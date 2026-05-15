@@ -1,0 +1,128 @@
+{
+  "extensionName": {
+    "message": "Page Inbox",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "A lightweight local page inbox for saving web pages, organizing tags, processing later, and exporting Markdown or JSON.",
+    "description": "Short description shown in Microsoft Edge Add-ons"
+  },
+  "popupTitle": {
+    "message": "Page Inbox"
+  },
+  "inboxCount": {
+    "message": "$COUNT$ pending",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "saveCurrentButton": {
+    "message": "Save current page"
+  },
+  "manualAddLabel": {
+    "message": "Manual add"
+  },
+  "manualUrlPlaceholder": {
+    "message": "Paste a page URL"
+  },
+  "manualAddButton": {
+    "message": "Add"
+  },
+  "filterLabel": {
+    "message": "Filters"
+  },
+  "searchPlaceholder": {
+    "message": "Search title, description, URL, or tag"
+  },
+  "statusFilterLabel": {
+    "message": "Status filter"
+  },
+  "statusAll": {
+    "message": "All"
+  },
+  "statusInbox": {
+    "message": "Inbox"
+  },
+  "statusDone": {
+    "message": "Done"
+  },
+  "tagFilterLabel": {
+    "message": "Tag filters"
+  },
+  "exportJsonButton": {
+    "message": "Export JSON"
+  },
+  "exportMarkdownButton": {
+    "message": "Export Markdown"
+  },
+  "clearDoneButton": {
+    "message": "Clear done"
+  },
+  "tagsPlaceholder": {
+    "message": "Tags, separated by commas"
+  },
+  "notePlaceholder": {
+    "message": "Note or next action"
+  },
+  "copyMarkdownButton": {
+    "message": "Copy Markdown"
+  },
+  "deleteButton": {
+    "message": "Delete"
+  },
+  "allTags": {
+    "message": "All tags"
+  },
+  "noDescription": {
+    "message": "No description"
+  },
+  "moveBackButton": {
+    "message": "Move back"
+  },
+  "markDoneButton": {
+    "message": "Mark done"
+  },
+  "messageUnsupportedPage": {
+    "message": "This page cannot be saved."
+  },
+  "messageSavedCurrent": {
+    "message": "Current page saved."
+  },
+  "messageInvalidUrl": {
+    "message": "Enter a valid link."
+  },
+  "messageAddedLink": {
+    "message": "Link added."
+  },
+  "emptyNoMatches": {
+    "message": "No matching pages."
+  },
+  "emptyNoItems": {
+    "message": "No saved pages yet."
+  },
+  "messageMarkdownCopied": {
+    "message": "Markdown link copied."
+  },
+  "messageNoDoneItems": {
+    "message": "There are no done items."
+  },
+  "messageClearedDone": {
+    "message": "Cleared $COUNT$ done items.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageNoExportItems": {
+    "message": "There are no items to export."
+  },
+  "contextMenuSavePage": {
+    "message": "Save to Page Inbox"
+  },
+  "contextMenuSaveLink": {
+    "message": "Save to Page Inbox"
+  }
+}
