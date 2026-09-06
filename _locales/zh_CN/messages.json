@@ -130,5 +130,84 @@
   },
   "messageStorageError": {
     "message": "保存失败，请重试。"
+  },
+  "pinButton": {
+    "message": "置顶"
+  },
+  "unpinButton": {
+    "message": "取消置顶"
+  },
+  "selectItemLabel": {
+    "message": "选择此项"
+  },
+  "batchToggleButton": {
+    "message": "批量管理"
+  },
+  "batchBarLabel": {
+    "message": "批量操作"
+  },
+  "selectAllButton": {
+    "message": "全选"
+  },
+  "deselectAllButton": {
+    "message": "取消全选"
+  },
+  "exitBatchButton": {
+    "message": "退出批量"
+  },
+  "selectionCount": {
+    "message": "已选 $COUNT$ 项",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "batchTagButton": {
+    "message": "添加标签"
+  },
+  "batchTagApplyButton": {
+    "message": "应用"
+  },
+  "batchDoneButton": {
+    "message": "标记完成"
+  },
+  "confirmBatchDelete": {
+    "message": "确定删除选中的 $COUNT$ 项？",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageBatchNoSelection": {
+    "message": "请先选择条目。"
+  },
+  "messageBatchNoTags": {
+    "message": "请输入标签。"
+  },
+  "messageBatchTagged": {
+    "message": "已为 $COUNT$ 项添加标签。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageBatchDone": {
+    "message": "已标记 $COUNT$ 项完成。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageBatchDeleted": {
+    "message": "已删除 $COUNT$ 项。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

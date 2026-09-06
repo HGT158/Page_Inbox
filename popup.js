@@ -11,11 +11,24 @@ const els = {
   itemTemplate: document.querySelector("#itemTemplate"),
   exportJsonButton: document.querySelector("#exportJsonButton"),
   exportMarkdownButton: document.querySelector("#exportMarkdownButton"),
-  clearDoneButton: document.querySelector("#clearDoneButton")
+  clearDoneButton: document.querySelector("#clearDoneButton"),
+  batchToggleButton: document.querySelector("#batchToggleButton"),
+  batchBar: document.querySelector("#batchBar"),
+  selectAllButton: document.querySelector("#selectAllButton"),
+  selectionCount: document.querySelector("#selectionCount"),
+  exitBatchButton: document.querySelector("#exitBatchButton"),
+  batchTagButton: document.querySelector("#batchTagButton"),
+  batchDoneButton: document.querySelector("#batchDoneButton"),
+  batchDeleteButton: document.querySelector("#batchDeleteButton"),
+  batchTagRow: document.querySelector("#batchTagRow"),
+  batchTagInput: document.querySelector("#batchTagInput"),
+  batchTagApplyButton: document.querySelector("#batchTagApplyButton")
 };
 
 let items = [];
 let activeTag = "";
+let selectionMode = false;
+const selectedIds = new Set();
 
 init();
 
@@ -61,6 +74,18 @@ function bindEvents() {
   els.exportJsonButton.addEventListener("click", exportJson);
   els.exportMarkdownButton.addEventListener("click", exportMarkdown);
   els.clearDoneButton.addEventListener("click", clearDoneItems);
+  els.batchToggleButton.addEventListener("click", enterSelectionMode);
+  els.exitBatchButton.addEventListener("click", exitSelectionMode);
+  els.selectAllButton.addEventListener("click", toggleSelectAll);
+  els.batchTagButton.addEventListener("click", toggleBatchTagRow);
+  els.batchTagApplyButton.addEventListener("click", applyBatchTags);
+  els.batchTagInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      applyBatchTags();
+    }
+  });
+  els.batchDoneButton.addEventListener("click", batchMarkDone);
+  els.batchDeleteButton.addEventListener("click", batchDelete);
 }
 
 async function loadItems() {
@@ -154,7 +179,10 @@ async function upsertItem(item) {
 
 function render() {
   items = items.map(normalizeItem);
-  const filteredItems = getFilteredItems();
+  els.list.classList.toggle("selecting", selectionMode);
+  updateBatchBar();
+  const filteredItems = getFilteredItems()
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned));
   const inboxCount = items.filter((item) => item.status !== "done").length;
 
   els.countText.textContent = t("inboxCount", String(inboxCount));
@@ -212,6 +240,7 @@ function renderItem(item) {
   const fragment = els.itemTemplate.content.cloneNode(true);
   localizeElement(fragment);
   const article = fragment.querySelector(".item");
+  const checkbox = fragment.querySelector(".item-select");
   const title = fragment.querySelector(".item-title");
   const url = fragment.querySelector(".item-url");
   const description = fragment.querySelector(".item-description");
@@ -220,8 +249,10 @@ function renderItem(item) {
   const statusButton = fragment.querySelector(".status-button");
   const markdownButton = fragment.querySelector(".markdown-button");
   const deleteButton = fragment.querySelector(".delete-button");
+  const pinButton = fragment.querySelector(".pin-button");
 
   article.dataset.id = item.id;
+  article.dataset.pinned = String(Boolean(item.pinned));
   title.textContent = item.title || item.url;
   title.href = item.url;
   url.textContent = item.url;
@@ -231,6 +262,10 @@ function renderItem(item) {
   note.value = item.note || "";
   statusButton.dataset.status = item.status;
   statusButton.textContent = item.status === "done" ? t("moveBackButton") : t("markDoneButton");
+  pinButton.textContent = item.pinned ? t("unpinButton") : t("pinButton");
+  pinButton.dataset.pinned = String(Boolean(item.pinned));
+  checkbox.checked = selectedIds.has(item.id);
+  checkbox.setAttribute("aria-label", t("selectItemLabel"));
 
   tags.addEventListener("change", () => updateItem(item.id, { tags: parseTags(tags.value) }));
   note.addEventListener("change", () => updateItem(item.id, { note: note.value.trim() }));
@@ -246,6 +281,16 @@ function renderItem(item) {
     if (confirm(t("confirmDelete"))) {
       deleteItem(item.id);
     }
+  });
+  pinButton.addEventListener("click", () => updateItem(item.id, { pinned: !item.pinned }));
+  checkbox.addEventListener("change", () => setSelected(item.id, checkbox.checked));
+  title.addEventListener("click", (event) => {
+    if (!selectionMode) {
+      return;
+    }
+    event.preventDefault();
+    setSelected(item.id, !selectedIds.has(item.id));
+    checkbox.checked = selectedIds.has(item.id);
   });
 
   return fragment;
@@ -308,6 +353,126 @@ async function clearDoneItems() {
   showMessage(t("messageClearedDone", String(doneCount)));
 }
 
+function enterSelectionMode() {
+  selectionMode = true;
+  selectedIds.clear();
+  els.batchToggleButton.hidden = true;
+  els.batchBar.hidden = false;
+  render();
+}
+
+function exitSelectionMode() {
+  selectionMode = false;
+  selectedIds.clear();
+  els.batchToggleButton.hidden = false;
+  els.batchBar.hidden = true;
+  els.batchTagRow.hidden = true;
+  els.batchTagInput.value = "";
+  render();
+}
+
+function updateBatchBar() {
+  els.selectionCount.textContent = t("selectionCount", String(selectedIds.size));
+  const hasSelection = selectedIds.size > 0;
+  els.batchTagButton.disabled = !hasSelection;
+  els.batchDoneButton.disabled = !hasSelection;
+  els.batchDeleteButton.disabled = !hasSelection;
+
+  const visibleIds = getFilteredItems().map((item) => item.id);
+  const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  els.selectAllButton.textContent = allSelected ? t("deselectAllButton") : t("selectAllButton");
+}
+
+function setSelected(id, checked) {
+  if (checked) {
+    selectedIds.add(id);
+  } else {
+    selectedIds.delete(id);
+  }
+  updateBatchBar();
+}
+
+function toggleSelectAll() {
+  const visibleIds = getFilteredItems().map((item) => item.id);
+  const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  for (const id of visibleIds) {
+    setSelected(id, !allSelected);
+  }
+  render();
+}
+
+function toggleBatchTagRow() {
+  els.batchTagRow.hidden = !els.batchTagRow.hidden;
+  if (!els.batchTagRow.hidden) {
+    els.batchTagInput.focus();
+  }
+}
+
+async function applyBatchTags() {
+  const tags = parseTags(els.batchTagInput.value);
+  if (!tags.length) {
+    showMessage(t("messageBatchNoTags"));
+    return;
+  }
+  if (!selectedIds.size) {
+    showMessage(t("messageBatchNoSelection"));
+    return;
+  }
+
+  const now = new Date().toISOString();
+  items = items.map((item) => {
+    if (!selectedIds.has(item.id)) {
+      return item;
+    }
+    return normalizeItem({
+      ...item,
+      tags: Array.from(new Set([...item.tags, ...tags])),
+      updatedAt: now
+    });
+  });
+  await persistItems();
+  els.batchTagInput.value = "";
+  els.batchTagRow.hidden = true;
+  render();
+  showMessage(t("messageBatchTagged", String(selectedIds.size)));
+}
+
+async function batchMarkDone() {
+  if (!selectedIds.size) {
+    showMessage(t("messageBatchNoSelection"));
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const count = selectedIds.size;
+  items = items.map((item) => (
+    selectedIds.has(item.id)
+      ? normalizeItem({ ...item, status: "done", updatedAt: now })
+      : item
+  ));
+  await persistItems();
+  selectedIds.clear();
+  render();
+  showMessage(t("messageBatchDone", String(count)));
+}
+
+async function batchDelete() {
+  if (!selectedIds.size) {
+    showMessage(t("messageBatchNoSelection"));
+    return;
+  }
+  if (!confirm(t("confirmBatchDelete", String(selectedIds.size)))) {
+    return;
+  }
+
+  const count = selectedIds.size;
+  items = items.filter((item) => !selectedIds.has(item.id));
+  await persistItems();
+  selectedIds.clear();
+  render();
+  showMessage(t("messageBatchDeleted", String(count)));
+}
+
 function exportJson() {
   if (!items.length) {
     showMessage(t("messageNoExportItems"));
@@ -357,7 +522,8 @@ function normalizeItem(item) {
     description: item.description || "",
     tags: Array.isArray(item.tags) ? item.tags : [],
     note: item.note || "",
-    status: item.status || "inbox"
+    status: item.status || "inbox",
+    pinned: Boolean(item.pinned)
   };
 }
 

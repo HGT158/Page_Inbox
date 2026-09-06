@@ -31,12 +31,31 @@
       </section>
 
       <section id="tagFilters" class="tag-filters" data-i18n-aria-label="tagFilterLabel"></section>
+
+      <section id="batchBar" class="batch-bar" hidden data-i18n-aria-label="batchBarLabel">
+        <div class="batch-row">
+          <button id="selectAllButton" type="button" data-i18n="selectAllButton"></button>
+          <span id="selectionCount" class="selection-count"></span>
+          <button id="exitBatchButton" type="button" data-i18n="exitBatchButton"></button>
+        </div>
+        <div class="batch-row batch-actions">
+          <button id="batchTagButton" type="button" data-i18n="batchTagButton"></button>
+          <button id="batchDoneButton" type="button" data-i18n="batchDoneButton"></button>
+          <button id="batchDeleteButton" type="button" class="danger" data-i18n="deleteButton"></button>
+        </div>
+        <div id="batchTagRow" class="batch-row batch-tag-row" hidden>
+          <input id="batchTagInput" type="text" data-i18n-placeholder="tagsPlaceholder">
+          <button id="batchTagApplyButton" type="button" data-i18n="batchTagApplyButton"></button>
+        </div>
+      </section>
+
       <section id="message" class="message" hidden></section>
       <section id="list" class="list" aria-live="polite"></section>
 
       <footer class="footer">
         <button id="exportJsonButton" type="button" data-i18n="exportJsonButton"></button>
         <button id="exportMarkdownButton" type="button" data-i18n="exportMarkdownButton"></button>
+        <button id="batchToggleButton" type="button" data-i18n="batchToggleButton"></button>
         <button id="clearDoneButton" type="button" data-i18n="clearDoneButton"></button>
       </footer>
     </main>
@@ -44,10 +63,12 @@
     <template id="itemTemplate">
       <article class="item">
         <div class="item-head">
+          <input class="item-select" type="checkbox">
           <div class="item-title-wrap">
             <a class="item-title" target="_blank" rel="noreferrer"></a>
             <p class="item-url"></p>
           </div>
+          <button class="pin-button" type="button"></button>
         </div>
         <p class="item-description"></p>
         <input class="item-tags" type="text" data-i18n-placeholder="tagsPlaceholder">

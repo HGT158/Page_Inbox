@@ -130,5 +130,84 @@
   },
   "messageStorageError": {
     "message": "Failed to save. Please try again."
+  },
+  "pinButton": {
+    "message": "Pin"
+  },
+  "unpinButton": {
+    "message": "Unpin"
+  },
+  "selectItemLabel": {
+    "message": "Select item"
+  },
+  "batchToggleButton": {
+    "message": "Batch edit"
+  },
+  "batchBarLabel": {
+    "message": "Batch actions"
+  },
+  "selectAllButton": {
+    "message": "Select all"
+  },
+  "deselectAllButton": {
+    "message": "Deselect all"
+  },
+  "exitBatchButton": {
+    "message": "Exit batch"
+  },
+  "selectionCount": {
+    "message": "$COUNT$ selected",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "batchTagButton": {
+    "message": "Add tags"
+  },
+  "batchTagApplyButton": {
+    "message": "Apply"
+  },
+  "batchDoneButton": {
+    "message": "Mark done"
+  },
+  "confirmBatchDelete": {
+    "message": "Delete $COUNT$ selected items?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageBatchNoSelection": {
+    "message": "Select items first."
+  },
+  "messageBatchNoTags": {
+    "message": "Enter tags first."
+  },
+  "messageBatchTagged": {
+    "message": "Tagged $COUNT$ items.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageBatchDone": {
+    "message": "Marked $COUNT$ items done.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "messageBatchDeleted": {
+    "message": "Deleted $COUNT$ items.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }
