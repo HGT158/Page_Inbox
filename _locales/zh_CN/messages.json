@@ -297,5 +297,134 @@
   },
   "messageClipboardError": {
     "message": "复制失败，请重试。"
+  },
+  "aiCardTitle": {
+    "message": "AI 助手"
+  },
+  "aiCardDesc": {
+    "message": "选择收藏的网页，以对话形式让 AI 讲解和分析。"
+  },
+  "openAiButton": {
+    "message": "打开 AI 分析"
+  },
+  "aiPageTitle": {
+    "message": "AI 分析"
+  },
+  "aiItemsLabel": {
+    "message": "收藏列表"
+  },
+  "aiSearchPlaceholder": {
+    "message": "搜索标题或链接"
+  },
+  "aiSelectedCount": {
+    "message": "已选 $COUNT$ 项",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiEmptyItems": {
+    "message": "还没有收藏的网页。"
+  },
+  "aiChatLabel": {
+    "message": "对话"
+  },
+  "aiChatEmpty": {
+    "message": "在左侧选择网页（默认只列待处理），然后提问。AI 会基于保存的标题、描述、笔记和标签进行分析，不会访问网页本身。"
+  },
+  "aiQuick1": {
+    "message": "讲解这几个网页"
+  },
+  "aiQuick2": {
+    "message": "总结它们的共同主题"
+  },
+  "aiInputLabel": {
+    "message": "你的问题"
+  },
+  "aiInputPlaceholder": {
+    "message": "输入你的问题，Enter 发送，Shift+Enter 换行"
+  },
+  "aiSendButton": {
+    "message": "发送"
+  },
+  "aiStopButton": {
+    "message": "停止"
+  },
+  "aiNeedSelection": {
+    "message": "请先在左侧选择至少一个网页。"
+  },
+  "aiContextPrefix": {
+    "message": "当前选择的网页信息："
+  },
+  "aiSystemPrompt": {
+    "message": "你是浏览器扩展「网页稍后处理」的收藏分析助手。用户会提供若干收藏网页的信息（JSON 列表，含标题、链接、描述、笔记、标签），请基于这些信息为用户讲解、分析这些网页并回答后续提问。如果这些信息不足以回答，请如实说明，不要编造网页内容。请使用用户提问的语言回复。"
+  },
+  "aiEmptyReply": {
+    "message": "模型返回为空。"
+  },
+  "aiErrorGeneric": {
+    "message": "请求失败：$MSG$",
+    "placeholders": {
+      "msg": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiSettingsLabel": {
+    "message": "AI 设置"
+  },
+  "aiProviderLabel": {
+    "message": "接入方式"
+  },
+  "providerAuto": {
+    "message": "自动（优先内置模型）"
+  },
+  "providerBuiltin": {
+    "message": "浏览器内置模型（本地）"
+  },
+  "providerOpenai": {
+    "message": "自定义接口（OpenAI 兼容）"
+  },
+  "aiBaseUrlLabel": {
+    "message": "接口地址（完整 chat/completions URL）"
+  },
+  "aiBaseUrlPlaceholder": {
+    "message": "https://api.deepseek.com/v1/chat/completions"
+  },
+  "aiKeyLabel": {
+    "message": "API Key"
+  },
+  "aiModelLabel": {
+    "message": "模型名称"
+  },
+  "aiModelPlaceholder": {
+    "message": "deepseek-chat"
+  },
+  "aiSaveSettingsButton": {
+    "message": "保存设置"
+  },
+  "aiSettingsSaved": {
+    "message": "设置已保存。"
+  },
+  "aiInvalidEndpoint": {
+    "message": "接口地址无效。"
+  },
+  "aiStatusBuiltin": {
+    "message": "使用浏览器内置模型，数据不出本机"
+  },
+  "aiStatusOpenai": {
+    "message": "自定义接口：$MODEL$",
+    "placeholders": {
+      "model": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiStatusNotConfigured": {
+    "message": "内置模型不可用，请在「AI 设置」里填写 OpenAI 兼容接口和 API Key"
+  },
+  "aiPermissionNeeded": {
+    "message": "需要授权访问接口域名才能发送，请重试并在提示中允许。"
   }
 }

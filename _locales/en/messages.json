@@ -297,5 +297,134 @@
   },
   "messageClipboardError": {
     "message": "Copy failed. Please try again."
+  },
+  "aiCardTitle": {
+    "message": "AI assistant"
+  },
+  "aiCardDesc": {
+    "message": "Select saved pages and let AI explain and analyze them in a chat."
+  },
+  "openAiButton": {
+    "message": "Open AI analysis"
+  },
+  "aiPageTitle": {
+    "message": "AI analysis"
+  },
+  "aiItemsLabel": {
+    "message": "Saved pages"
+  },
+  "aiSearchPlaceholder": {
+    "message": "Search title or link"
+  },
+  "aiSelectedCount": {
+    "message": "$COUNT$ selected",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiEmptyItems": {
+    "message": "No saved pages yet."
+  },
+  "aiChatLabel": {
+    "message": "Chat"
+  },
+  "aiChatEmpty": {
+    "message": "Pick pages on the left (inbox items by default), then ask. AI works from saved titles, descriptions, notes and tags; it does not visit the pages."
+  },
+  "aiQuick1": {
+    "message": "Explain these pages"
+  },
+  "aiQuick2": {
+    "message": "Summarize the common theme"
+  },
+  "aiInputLabel": {
+    "message": "Your question"
+  },
+  "aiInputPlaceholder": {
+    "message": "Type your question. Enter to send, Shift+Enter for a new line"
+  },
+  "aiSendButton": {
+    "message": "Send"
+  },
+  "aiStopButton": {
+    "message": "Stop"
+  },
+  "aiNeedSelection": {
+    "message": "Select at least one page on the left first."
+  },
+  "aiContextPrefix": {
+    "message": "Selected pages:"
+  },
+  "aiSystemPrompt": {
+    "message": "You are the saved-page analysis assistant of the \"Page Inbox\" browser extension. The user provides information about saved pages (a JSON list with title, url, description, note and tags). Explain and analyze these pages and answer follow-up questions based only on that information. If the information is insufficient, say so honestly; do not invent page content. Reply in the language the user writes in."
+  },
+  "aiEmptyReply": {
+    "message": "The model returned an empty response."
+  },
+  "aiErrorGeneric": {
+    "message": "Request failed: $MSG$",
+    "placeholders": {
+      "msg": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiSettingsLabel": {
+    "message": "AI settings"
+  },
+  "aiProviderLabel": {
+    "message": "Provider"
+  },
+  "providerAuto": {
+    "message": "Auto (built-in model first)"
+  },
+  "providerBuiltin": {
+    "message": "Built-in browser model (local)"
+  },
+  "providerOpenai": {
+    "message": "Custom API (OpenAI-compatible)"
+  },
+  "aiBaseUrlLabel": {
+    "message": "Endpoint (full chat/completions URL)"
+  },
+  "aiBaseUrlPlaceholder": {
+    "message": "https://api.deepseek.com/v1/chat/completions"
+  },
+  "aiKeyLabel": {
+    "message": "API Key"
+  },
+  "aiModelLabel": {
+    "message": "Model name"
+  },
+  "aiModelPlaceholder": {
+    "message": "deepseek-chat"
+  },
+  "aiSaveSettingsButton": {
+    "message": "Save settings"
+  },
+  "aiSettingsSaved": {
+    "message": "Settings saved."
+  },
+  "aiInvalidEndpoint": {
+    "message": "Invalid endpoint URL."
+  },
+  "aiStatusBuiltin": {
+    "message": "Using the built-in browser model (on-device)"
+  },
+  "aiStatusOpenai": {
+    "message": "Custom API: $MODEL$",
+    "placeholders": {
+      "model": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiStatusNotConfigured": {
+    "message": "Built-in model unavailable. Configure an OpenAI-compatible endpoint and API key in AI settings"
+  },
+  "aiPermissionNeeded": {
+    "message": "Permission for the API domain is required to send; please retry and allow it in the prompt."
   }
 }

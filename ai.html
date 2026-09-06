@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>__MSG_extensionName__</title>
+    <link rel="stylesheet" href="ai.css">
+  </head>
+  <body>
+    <main class="layout">
+      <aside class="sidebar" data-i18n-aria-label="aiItemsLabel">
+        <div class="sidebar-head">
+          <input id="aiSearch" type="search" data-i18n-placeholder="aiSearchPlaceholder">
+          <span id="selectedCount" class="muted"></span>
+        </div>
+        <div id="itemList" class="item-list"></div>
+      </aside>
+
+      <section class="chat" data-i18n-aria-label="aiChatLabel">
+        <header class="chat-head">
+          <h1 data-i18n="aiPageTitle"></h1>
+          <span id="providerStatus" class="status muted"></span>
+        </header>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <div class="chips">
+          <button class="chip" type="button" data-i18n="aiQuick1"></button>
+          <button class="chip" type="button" data-i18n="aiQuick2"></button>
+        </div>
+
+        <div class="composer">
+          <textarea id="aiInput" rows="2" data-i18n-placeholder="aiInputPlaceholder" data-i18n-aria-label="aiInputLabel"></textarea>
+          <button id="sendButton" type="button" class="primary" data-i18n="aiSendButton"></button>
+          <button id="stopButton" type="button" hidden data-i18n="aiStopButton"></button>
+        </div>
+
+        <details id="settingsPanel" class="settings">
+          <summary data-i18n="aiSettingsLabel"></summary>
+          <div class="settings-grid">
+            <label class="field">
+              <span data-i18n="aiProviderLabel"></span>
+              <select id="providerSelect">
+                <option value="auto" data-i18n="providerAuto"></option>
+                <option value="builtin" data-i18n="providerBuiltin"></option>
+                <option value="openai" data-i18n="providerOpenai"></option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="aiModelLabel"></span>
+              <input id="modelInput" type="text" data-i18n-placeholder="aiModelPlaceholder">
+            </label>
+            <label class="field field-wide">
+              <span data-i18n="aiBaseUrlLabel"></span>
+              <input id="baseUrlInput" type="url" data-i18n-placeholder="aiBaseUrlPlaceholder">
+            </label>
+            <label class="field field-wide">
+              <span data-i18n="aiKeyLabel"></span>
+              <input id="apiKeyInput" type="password" autocomplete="off">
+            </label>
+          </div>
+          <div class="row">
+            <button id="saveSettingsButton" type="button" data-i18n="aiSaveSettingsButton"></button>
+            <span id="aiToast" class="toast" hidden></span>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <script src="shared.js"></script>
+    <script src="ai.js"></script>
+  </body>
+</html>

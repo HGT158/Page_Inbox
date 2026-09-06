@@ -12,6 +12,7 @@ const els = {
   copyAllMarkdownButton: document.querySelector("#copyAllMarkdownButton"),
   exportCsvButton: document.querySelector("#exportCsvButton"),
   exportBookmarksButton: document.querySelector("#exportBookmarksButton"),
+  openAiButton: document.querySelector("#openAiButton"),
   message: document.querySelector("#dashMessage")
 };
 
@@ -33,6 +34,9 @@ function bindEvents() {
   els.copyAllMarkdownButton.addEventListener("click", handleCopyAllMarkdown);
   els.exportCsvButton.addEventListener("click", exportCsv);
   els.exportBookmarksButton.addEventListener("click", exportBookmarks);
+  els.openAiButton.addEventListener("click", () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL("ai.html") });
+  });
 }
 
 async function loadItems() {
