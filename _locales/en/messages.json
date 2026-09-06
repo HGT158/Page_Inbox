@@ -431,7 +431,7 @@
     "message": "Fetch page content"
   },
   "aiIncludeContentDesc": {
-    "message": "When enabled, AI receives text extracted from the selected pages (up to 8000 characters per page, 6 pages max). Requires per-site permission; text is kept in memory only, never written to storage."
+    "message": "When enabled, AI receives text extracted from the selected pages (up to 8000 characters per page, 6 pages max), with per-site permission. If a direct fetch fails or is empty, the page is opened briefly in a background tab to read its rendered content, then closed. Text is kept in memory only, never written to storage."
   },
   "aiPermissionBanner": {
     "message": "Grant access to $COUNT$ sites to read page content.",
