@@ -378,6 +378,16 @@ button.danger {
   border-top: 1px solid var(--line);
 }
 
+.mermaid-figure {
+  margin: 8px 0;
+  overflow-x: auto;
+}
+
+.mermaid-figure svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .msg.error {
   align-self: center;
   color: var(--danger);

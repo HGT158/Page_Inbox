@@ -46,7 +46,6 @@ let lastContextKey = "";
 let streaming = false;
 let stopRequested = false;
 let controller = null;
-let builtinSession = null;
 const pageCache = new Map();
 
 init();
@@ -133,7 +132,6 @@ async function saveSettings() {
     includeContent: els.includeContentInput.checked
   };
   await chrome.storage.local.set({ [AI_SETTINGS_KEY]: settings });
-  builtinSession = null;
 
   if (resolveProvider(settings) === "openai" && baseUrl) {
     await ensureEndpointPermission();
@@ -194,58 +192,55 @@ async function updateStatus() {
   }
 }
 
-async function ensureBuiltinSession() {
-  if (builtinSession) {
-    return builtinSession;
-  }
-  const lm = getLanguageModel();
-  if (!lm) {
-    return null;
-  }
-  let availability = "unavailable";
-  if (typeof lm.availability === "function") {
-    availability = await lm.availability();
-  } else if (typeof lm.capabilities === "function") {
-    availability = (await lm.capabilities()).available;
-  }
-  if (availability === "unavailable" || availability === "no") {
-    return null;
-  }
-  builtinSession = await lm.create({
-    initialPrompts: [{ role: "system", content: systemPrompt() }]
-  });
-  return builtinSession;
-}
-
 async function streamTurn(history, newUserText, onDelta) {
   const provider = resolveProvider(settings);
   stopRequested = false;
 
   if (provider === "builtin") {
-    const session = await ensureBuiltinSession();
-    if (!session) {
+    const lm = getLanguageModel();
+    if (!lm) {
       throw new Error(t("aiStatusNotConfigured"));
     }
-    const reader = session.promptStreaming(newUserText).getReader();
-    let full = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done || stopRequested) {
-        if (stopRequested) {
-          reader.cancel().catch(() => {});
+    let availability = "unavailable";
+    if (typeof lm.availability === "function") {
+      availability = await lm.availability();
+    } else if (typeof lm.capabilities === "function") {
+      availability = (await lm.capabilities()).available;
+    }
+    if (availability === "unavailable" || availability === "no") {
+      throw new Error(t("aiStatusNotConfigured"));
+    }
+    // 每轮用"截至上一条"的完整历史重建会话:恢复的持久化对话才有上下文
+    const priorTurns = history.slice(0, -1);
+    const session = await lm.create({
+      initialPrompts: priorTurns.length ? priorTurns : [{ role: "system", content: systemPrompt() }]
+    });
+    try {
+      const reader = session.promptStreaming(newUserText).getReader();
+      let full = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done || stopRequested) {
+          if (stopRequested) {
+            reader.cancel().catch(() => {});
+          }
+          break;
         }
-        break;
+        const chunkText = String(value ?? "");
+        if (chunkText.startsWith(full) && chunkText.length > full.length) {
+          onDelta(chunkText.slice(full.length));
+          full = chunkText;
+        } else {
+          full += chunkText;
+          onDelta(chunkText);
+        }
       }
-      const chunkText = String(value ?? "");
-      if (chunkText.startsWith(full) && chunkText.length > full.length) {
-        onDelta(chunkText.slice(full.length));
-        full = chunkText;
-      } else {
-        full += chunkText;
-        onDelta(chunkText);
+      return full;
+    } finally {
+      if (typeof session.destroy === "function") {
+        session.destroy();
       }
     }
-    return full;
   }
 
   controller = new AbortController();
@@ -327,7 +322,7 @@ async function send() {
   }
 
   if (resolveProvider(settings) === "openai") {
-    if (!settings.baseUrl || !settings.apiKey) {
+    if (!settings.baseUrl || !settings.apiKey || !settings.model) {
       showToast(t("aiStatusNotConfigured"));
       els.settingsPanel.open = true;
       return;
@@ -370,7 +365,9 @@ async function send() {
 
     const history = [
       { role: "system", content: systemPrompt() },
-      ...chat.map(({ role, content }) => ({ role, content }))
+      ...chat
+        .filter((message) => message.role === "user" || message.role === "assistant")
+        .map(({ role, content }) => ({ role, content }))
     ];
 
     const full = await streamTurn(history, text, (delta) => {
@@ -424,6 +421,7 @@ async function saveCurrentChat() {
   }
   entry.updatedAt = now;
   entry.messages = chat
+    .filter((message) => message.role === "user" || message.role === "assistant")
     .map((message) => ({
       role: message.role,
       // 用户消息只存提问本身,不把网页正文上下文写进存储
@@ -525,6 +523,10 @@ function renderChatList() {
 function setStreaming(value) {
   streaming = value;
   els.stopButton.hidden = !value;
+  // 流式回复期间禁止切换/新建/删除会话,避免把回复写进错误的会话
+  els.chatSelect.disabled = value;
+  els.newChatButton.disabled = value;
+  els.deleteChatButton.disabled = value || !currentChatId;
   updateComposer();
 }
 
@@ -622,9 +624,72 @@ function appendBubble(role, text) {
 
 const INLINE_MARKDOWN = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(__[^_\n]+__)|(\*[^*\n]+\*)|(~~[^~\n]+~~)|(!?\[[^\]\n]*\]\([^)\s]+\))/g;
 
-function renderMarkdown(container, text) {
+function renderMarkdown(container, text, deferMermaid = false) {
   container.replaceChildren();
   parseBlocks(String(text || "").split("\n"), container);
+  if (!deferMermaid) {
+    renderMermaidBlocks(container);
+  }
+}
+
+let mermaidPromise = null;
+let mermaidCounter = 0;
+
+function loadMermaid() {
+  if (typeof window.mermaid !== "undefined") {
+    return Promise.resolve(window.mermaid);
+  }
+  if (!mermaidPromise) {
+    mermaidPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "mermaid.min.js";
+      script.onload = () => {
+        try {
+          window.mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: "strict",
+            theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default"
+          });
+          resolve(window.mermaid);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      script.onerror = () => reject(new Error("mermaid load failed"));
+      document.head.append(script);
+    });
+  }
+  return mermaidPromise;
+}
+
+async function renderMermaidBlocks(container) {
+  const blocks = container.querySelectorAll(".mermaid-pending");
+  if (!blocks.length) {
+    return;
+  }
+  let mermaid;
+  try {
+    mermaid = await loadMermaid();
+  } catch {
+    return;
+  }
+  for (const block of blocks) {
+    if (!block.classList.contains("mermaid-pending")) {
+      continue;
+    }
+    const code = block.dataset.code || "";
+    try {
+      const { svg } = await mermaid.render(`mmd-${Date.now()}-${mermaidCounter++}`, code);
+      const figure = document.createElement("div");
+      figure.className = "mermaid-figure";
+      figure.innerHTML = svg;
+      block.replaceChildren(figure);
+      block.classList.remove("mermaid-pending");
+    } catch {
+      block.replaceChildren(buildCodeBlock(code));
+      block.classList.remove("mermaid-pending");
+    }
+  }
 }
 
 function parseBlocks(lines, target) {
@@ -637,6 +702,7 @@ function parseBlocks(lines, target) {
     }
 
     if (/^\s*```/.test(line)) {
+      const lang = (line.match(/^\s*```(\w*)/) || [])[1] || "";
       const codeLines = [];
       i += 1;
       while (i < lines.length && !/^\s*```/.test(lines[i])) {
@@ -646,7 +712,16 @@ function parseBlocks(lines, target) {
       if (i < lines.length) {
         i += 1;
       }
-      target.append(buildCodeBlock(codeLines.join("\n")));
+      const codeText = codeLines.join("\n");
+      if (lang.toLowerCase() === "mermaid") {
+        const holder = document.createElement("div");
+        holder.className = "mermaid-pending";
+        holder.dataset.code = codeText;
+        holder.append(buildCodeBlock(codeText));
+        target.append(holder);
+      } else {
+        target.append(buildCodeBlock(codeText));
+      }
       continue;
     }
 
