@@ -331,7 +331,7 @@
     "message": "Chat"
   },
   "aiChatEmpty": {
-    "message": "Pick pages on the left (inbox items by default), then ask. AI works from saved titles, descriptions, notes and tags; it does not visit the pages."
+    "message": "Pick pages on the left (inbox items by default), then ask. AI analyzes the saved titles, descriptions, notes and the fetched page text."
   },
   "aiQuick1": {
     "message": "Explain these pages"
@@ -358,7 +358,7 @@
     "message": "Selected pages:"
   },
   "aiSystemPrompt": {
-    "message": "You are the saved-page analysis assistant of the \"Page Inbox\" browser extension. The user provides information about saved pages (a JSON list with title, url, description, note and tags). Explain and analyze these pages and answer follow-up questions based only on that information. If the information is insufficient, say so honestly; do not invent page content. Reply in the language the user writes in."
+    "message": "You are the saved-page analysis assistant of the \"Page Inbox\" browser extension. The user provides information about saved pages (a JSON list with title, url, description, note and tags). The content field, when present, holds text extracted from that page (possibly truncated); base your explanation mainly on it. When content is missing the page text could not be fetched: answer from metadata only and tell the user about this limitation. If the information is insufficient, say so honestly; do not invent page content. Reply in the language the user writes in."
   },
   "aiEmptyReply": {
     "message": "The model returned an empty response."
@@ -426,5 +426,28 @@
   },
   "aiPermissionNeeded": {
     "message": "Permission for the API domain is required to send; please retry and allow it in the prompt."
+  },
+  "aiIncludeContentLabel": {
+    "message": "Fetch page content"
+  },
+  "aiIncludeContentDesc": {
+    "message": "When enabled, AI receives text extracted from the selected pages (up to 8000 characters per page, 6 pages max). Requires per-site permission; text is kept in memory only, never written to storage."
+  },
+  "aiPermissionBanner": {
+    "message": "Grant access to $COUNT$ sites to read page content.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiGrantButton": {
+    "message": "Grant & fetch"
+  },
+  "aiContentLoaded": {
+    "message": "Page content ready."
+  },
+  "aiLoading": {
+    "message": "Fetching pages and generating the reply…"
   }
 }

@@ -1,19 +1,27 @@
 const AI_SETTINGS_KEY = "laterbox.ai.v1";
-const DEFAULT_AI_SETTINGS = { provider: "auto", baseUrl: "", apiKey: "", model: "" };
+const DEFAULT_AI_SETTINGS = { provider: "auto", baseUrl: "", apiKey: "", model: "", includeContent: true };
+const PAGE_TEXT_LIMIT = 8000;
+const PAGE_CONTENT_MAX_ITEMS = 6;
+const PAGE_FETCH_TIMEOUT = 15000;
 
 const els = {
   search: document.querySelector("#aiSearch"),
   selectedCount: document.querySelector("#selectedCount"),
+  permissionBanner: document.querySelector("#permissionBanner"),
+  bannerText: document.querySelector("#bannerText"),
+  grantButton: document.querySelector("#grantButton"),
   itemList: document.querySelector("#itemList"),
   providerStatus: document.querySelector("#providerStatus"),
   messages: document.querySelector("#messages"),
   input: document.querySelector("#aiInput"),
   sendButton: document.querySelector("#sendButton"),
   stopButton: document.querySelector("#stopButton"),
+  settingsPanel: document.querySelector("#settingsPanel"),
   providerSelect: document.querySelector("#providerSelect"),
   modelInput: document.querySelector("#modelInput"),
   baseUrlInput: document.querySelector("#baseUrlInput"),
   apiKeyInput: document.querySelector("#apiKeyInput"),
+  includeContentInput: document.querySelector("#includeContentInput"),
   saveSettingsButton: document.querySelector("#saveSettingsButton"),
   toast: document.querySelector("#aiToast")
 };
@@ -27,6 +35,7 @@ let streaming = false;
 let stopRequested = false;
 let controller = null;
 let builtinSession = null;
+const pageCache = new Map();
 
 init();
 
@@ -40,10 +49,12 @@ async function init() {
   renderChat();
   updateComposer();
   await updateStatus();
+  await refreshPermissionBanner();
 }
 
 function bindEvents() {
   els.search.addEventListener("input", renderItemList);
+  els.grantButton.addEventListener("click", grantContentPermission);
   els.sendButton.addEventListener("click", send);
   els.stopButton.addEventListener("click", () => {
     stopRequested = true;
@@ -80,6 +91,7 @@ async function loadSettings() {
   els.baseUrlInput.value = settings.baseUrl;
   els.apiKeyInput.value = settings.apiKey;
   els.modelInput.value = settings.model;
+  els.includeContentInput.checked = settings.includeContent !== false;
 }
 
 async function saveSettings() {
@@ -98,7 +110,8 @@ async function saveSettings() {
     provider,
     baseUrl,
     apiKey: els.apiKeyInput.value.trim(),
-    model: els.modelInput.value.trim()
+    model: els.modelInput.value.trim(),
+    includeContent: els.includeContentInput.checked
   };
   await chrome.storage.local.set({ [AI_SETTINGS_KEY]: settings });
   builtinSession = null;
@@ -107,6 +120,7 @@ async function saveSettings() {
     await ensureEndpointPermission();
   }
   await updateStatus();
+  await refreshPermissionBanner();
   showToast(t("aiSettingsSaved"));
 }
 
@@ -306,36 +320,46 @@ async function send() {
   }
 
   const selectedItems = items.filter((item) => selectedIds.has(item.id));
-  let text = question;
-  const contextKey = selectedItems.map((item) => item.url).join("\n");
-  if (contextKey !== lastContextKey) {
-    text = `${question}\n\n---\n${t("aiContextPrefix")}\n${buildContext(selectedItems)}`;
-    lastContextKey = contextKey;
-  }
-
-  chat.push({ role: "user", content: text, display: question });
-  renderChat();
-  els.input.value = "";
   setStreaming(true);
 
-  const assistantEl = appendBubble("assistant", "");
-  const history = [
-    { role: "system", content: systemPrompt() },
-    ...chat.map(({ role, content }) => ({ role, content }))
-  ];
+  const assistantEl = appendBubble("assistant", t("aiLoading"));
+  let gotDelta = false;
 
   try {
+    if (settings.includeContent) {
+      await prefetchSelectedContent(selectedItems);
+    }
+
+    let text = question;
+    const contextKey = selectedItems.map((item) => item.url).join("\n");
+    if (contextKey !== lastContextKey) {
+      text = `${question}\n\n---\n${t("aiContextPrefix")}\n${buildContext(selectedItems)}`;
+      lastContextKey = contextKey;
+    }
+
+    chat.push({ role: "user", content: text, display: question });
+    appendBubble("user", question);
+    els.input.value = "";
+    updateComposer();
+
+    const history = [
+      { role: "system", content: systemPrompt() },
+      ...chat.map(({ role, content }) => ({ role, content }))
+    ];
+
     const full = await streamTurn(history, text, (delta) => {
+      if (!gotDelta) {
+        assistantEl.textContent = "";
+        gotDelta = true;
+      }
       assistantEl.textContent += delta;
       scrollBottom();
     });
     const reply = full.trim() || t("aiEmptyReply");
-    assistantEl.textContent = reply;
     chat.push({ role: "assistant", content: reply });
   } catch (err) {
-    const partial = assistantEl.textContent.trim();
-    if (partial) {
-      chat.push({ role: "assistant", content: partial });
+    if (gotDelta) {
+      chat.push({ role: "assistant", content: assistantEl.textContent.trim() });
     }
     if (!stopRequested) {
       chat.push({ role: "error", content: t("aiErrorGeneric", (err && err.message) || String(err)) });
@@ -398,6 +422,7 @@ function renderItemList() {
       }
       updateSelectedCount();
       updateComposer();
+      refreshPermissionBanner();
     });
     els.itemList.append(row);
   }
@@ -445,14 +470,116 @@ function scrollBottom() {
 }
 
 function buildContext(selectedItems) {
-  const data = selectedItems.map((item) => ({
-    title: item.title,
-    url: item.url,
-    description: item.description || "",
-    note: item.note || "",
-    tags: item.tags
-  }));
+  let contentBudget = PAGE_CONTENT_MAX_ITEMS;
+  const data = selectedItems.map((item) => {
+    const entry = {
+      title: item.title,
+      url: item.url,
+      description: item.description || "",
+      note: item.note || "",
+      tags: item.tags
+    };
+    if (settings.includeContent && contentBudget > 0) {
+      const text = pageCache.get(item.url);
+      if (text) {
+        entry.content = text;
+        contentBudget -= 1;
+      }
+    }
+    return entry;
+  });
   return `\`\`\`\n${JSON.stringify(data, null, 2)}\n\`\`\``;
+}
+
+function neededContentOrigins() {
+  if (!settings.includeContent) {
+    return [];
+  }
+  return Array.from(new Set(items
+    .filter((item) => selectedIds.has(item.id) && !pageCache.has(item.url) && isSupportedWebUrl(item.url))
+    .map((item) => `${new URL(item.url).origin}/*`)));
+}
+
+async function refreshPermissionBanner() {
+  if (!settings.includeContent || !selectedIds.size) {
+    els.permissionBanner.hidden = true;
+    return;
+  }
+  const origins = neededContentOrigins();
+  const missing = [];
+  for (const origin of origins) {
+    try {
+      if (!(await chrome.permissions.contains({ origins: [origin] }))) {
+        missing.push(origin);
+      }
+    } catch {
+      missing.push(origin);
+    }
+  }
+  els.permissionBanner.hidden = !missing.length;
+  if (missing.length) {
+    els.bannerText.textContent = t("aiPermissionBanner", String(missing.length));
+  }
+}
+
+async function grantContentPermission() {
+  const origins = neededContentOrigins();
+  if (!origins.length) {
+    await refreshPermissionBanner();
+    return;
+  }
+  let granted = false;
+  try {
+    granted = await chrome.permissions.request({ origins });
+  } catch {
+    granted = false;
+  }
+  if (granted) {
+    await prefetchSelectedContent(items.filter((item) => selectedIds.has(item.id)));
+    showToast(t("aiContentLoaded"));
+  }
+  await refreshPermissionBanner();
+}
+
+async function prefetchSelectedContent(selectedItems) {
+  const targets = selectedItems
+    .filter((item) => settings.includeContent && isSupportedWebUrl(item.url) && !pageCache.has(item.url))
+    .slice(0, PAGE_CONTENT_MAX_ITEMS);
+  await Promise.all(targets.map(async (item) => {
+    const text = await fetchPageText(item.url);
+    if (text) {
+      pageCache.set(item.url, text);
+    }
+  }));
+}
+
+async function fetchPageText(url) {
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(PAGE_FETCH_TIMEOUT) });
+    if (!response.ok) {
+      return "";
+    }
+    const html = await response.text();
+    return extractReadableText(html).slice(0, PAGE_TEXT_LIMIT);
+  } catch {
+    return "";
+  }
+}
+
+function extractReadableText(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, style, noscript, svg, iframe, template, nav, footer, header, aside, form, button")
+    .forEach((el) => el.remove());
+  const main = doc.querySelector("article, main, [role=\"main\"], #content, .content") || doc.body || doc.documentElement;
+  doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
+  for (const tag of ["p", "div", "li", "tr", "section", "article", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre", "dd", "dt"]) {
+    doc.querySelectorAll(tag).forEach((el) => el.append("\n"));
+  }
+  return (main.textContent || "")
+    .replace(/[ \t\f\v]+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
 }
 
 function systemPrompt() {

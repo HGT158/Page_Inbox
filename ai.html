@@ -12,6 +12,10 @@
         <div class="sidebar-head">
           <input id="aiSearch" type="search" data-i18n-placeholder="aiSearchPlaceholder">
           <span id="selectedCount" class="muted"></span>
+          <div id="permissionBanner" class="banner" hidden>
+            <span id="bannerText"></span>
+            <button id="grantButton" type="button" class="primary" data-i18n="aiGrantButton"></button>
+          </div>
         </div>
         <div id="itemList" class="item-list"></div>
       </aside>
@@ -57,6 +61,13 @@
             <label class="field field-wide">
               <span data-i18n="aiKeyLabel"></span>
               <input id="apiKeyInput" type="password" autocomplete="off">
+            </label>
+            <label class="field field-check field-wide">
+              <span class="check-line">
+                <input id="includeContentInput" type="checkbox">
+                <span data-i18n="aiIncludeContentLabel"></span>
+              </span>
+              <span class="muted" data-i18n="aiIncludeContentDesc"></span>
             </label>
           </div>
           <div class="row">
