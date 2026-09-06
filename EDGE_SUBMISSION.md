@@ -1,28 +1,67 @@
 # Microsoft Edge Add-ons submission notes
 
+Extension: **Page Inbox (网页稍后处理)** · Manifest V3 · Version 0.10.0
+
 ## Single purpose
 
-Page Inbox is a local page collection tool. It saves web page links into browser local storage so the user can review, tag, mark as done, copy as Markdown, or export the saved list later.
+Page Inbox is a local "read later" collection tool. It saves web page links into browser local storage so the user can review, tag, pin, batch-edit, search, copy as Markdown, import/export, and — entirely optionally — discuss the saved pages with an AI assistant inside a dedicated extension page.
+
+The single purpose can be stated as: **save, organize, and reuse a personal list of web page links, locally.**
+
+## Features overview (for reviewers)
+
+- Popup: save current page, paste a URL, tags, notes, pin, batch operations (batch tag / mark done / delete), search and filters, copy Markdown, export JSON/Markdown.
+- Context menu: save the current page or a link.
+- "More tools" page (`dashboard.html`): usage statistics, JSON import, CSV and Netscape HTML bookmark export, copy-all as Markdown.
+- "AI analysis" page (`ai.html`), fully opt-in: pick saved pages from a list and chat about them. Works with (a) the browser's built-in on-device model (Chrome Prompt API) when available, or (b) an OpenAI-compatible endpoint the user configures themselves (endpoint URL + API key stored locally). To ground the answers, the extension can extract text from the selected pages: direct HTTP fetch first, or — only with per-site permission — a temporary background tab that reads the rendered page and is closed immediately.
 
 ## Permission justification
 
+Required permissions:
+
 - `activeTab`: Reads the currently active tab only after the user clicks the popup save button or the context menu command.
-- `contextMenus`: Adds page and link context menu entries so the user can save pages or links from Microsoft Edge.
-- `scripting`: Runs a small user-triggered script in the active tab to read the page title and description metadata.
-- `storage`: Stores the saved page list, tags, notes, and status locally in `chrome.storage.local`.
+- `contextMenus`: Adds page and link context menu entries so the user can save pages or links.
+- `scripting`: (1) Runs a small user-triggered script in the active tab to read the page title and description metadata when saving. (2) On the optional AI page, runs a text-extraction script inside a temporary background tab of a page the user explicitly asked to analyze — only for sites the user has granted access to.
+- `storage`: Stores the saved page list, tags, notes, status, AI settings, and AI chat history locally in `chrome.storage.local`.
+
+Optional host permissions (requested at runtime, per origin, never granted at install):
+
+- `https://*/*`, `http://*/*`: Declared so the user can grant access to individual origins. Two runtime scenarios, both user-initiated:
+  1. Fetching the text of a page the user selected for AI analysis (and opening its temporary background tab when a direct fetch fails).
+  2. Calling the user-configured AI endpoint (e.g. `https://api.deepseek.com`).
+  The extension requests only the specific origins involved (e.g. `https://example.com/*`), shows an in-page banner explaining what needs permission and why, and works in a degraded metadata-only mode when permission is denied.
 
 ## Remote code
 
-No remote code is loaded or executed. All JavaScript, HTML, CSS, and localization files are packaged with the extension.
+No remote code is loaded or executed. All JavaScript, HTML, CSS, and localization files are packaged with the extension. No CDN scripts, no eval, no remote configuration.
 
-## Data usage
+## Data usage and privacy disclosure
 
-The extension stores saved URLs, page titles, optional page descriptions, tags, notes, status, and timestamps in the user's local browser storage. It does not transmit this data to a server. Manual exports create local JSON or Markdown files at the user's request.
+- Saved pages (URL, title, optional description, tags, notes, status, pin state, timestamps) are stored only in the local `chrome.storage.local` of the user's browser profile.
+- Manual exports (JSON / Markdown / CSV / Netscape HTML bookmarks) create local files at the user's explicit request. JSON import merges entries locally.
+- The AI feature is opt-in and off by default in effect: nothing is sent anywhere until the user either uses the browser's built-in on-device model or explicitly configures their own API endpoint and key. When the user does chat about selected pages, the pages' metadata (title, URL, description, notes, tags) — and, if the user enabled content fetching and granted the site permission, the extracted page text (capped at 8,000 characters per page) — is sent to that endpoint or on-device model to generate the answer.
+- Extracted page text is kept in an in-memory cache for the current AI page session only; it is never written to storage.
+- AI chat history is stored locally (page titles, links and the conversation itself; page text content is not persisted) and can be deleted from the AI page at any time.
+- The extension has no analytics, no telemetry, no accounts, and no background network activity.
 
 ## Certification testing notes
 
-1. Load the unpacked extension folder in Microsoft Edge.
-2. Open any `https://` page and click the extension icon.
-3. Click **Save current page**.
-4. Add a manual URL, add tags and a note, mark an item done, copy Markdown, and export JSON or Markdown.
-5. Right-click a page or link and use the Page Inbox context menu entry.
+1. Load the unpacked extension folder in Microsoft Edge (or Chrome).
+2. Open any `https://` page, click the extension icon, and click **Save current page**.
+3. In the popup: paste a URL to add manually; add tags and a note; pin an item; use **Batch edit** to select multiple items and apply a tag, mark done, or delete; search and filter; copy Markdown; export JSON/Markdown.
+4. Right-click a page or a link and use the Page Inbox context menu entry.
+5. Open **More tools**: review the statistics, export CSV / HTML bookmarks / copy all as Markdown, and import a previously exported JSON file (deduplicated by URL).
+6. AI analysis (optional path): open **More tools → AI assistant → Open AI analysis**. Select one or more pages on the left. If a permission banner appears, grant access for the listed sites. Configure the provider in **AI settings** — either keep "Auto" (uses the browser's built-in model where available, e.g. Chrome with the Prompt API enabled) or choose "Custom API" and enter an OpenAI-compatible endpoint URL, API key, and model name, then save. Send a question; the assistant reply renders as Markdown in the chat. Use **New chat** / the history picker / **Delete chat** to manage local conversations. Turning off "Fetch page content" restricts the AI to saved metadata only.
+7. Confirm in the permission prompt that requested origins match only the sites being analyzed or the configured API endpoint.
+
+## Store listing assets
+
+- Name: Page Inbox (网页稍后处理)
+- Short description: see `_locales/*/messages.json` → `extensionDescription`
+- Suggested category: Productivity
+- Suggested store screenshots: popup with saved items, More tools page (stats + import/export), AI analysis page with a rendered conversation.
+
+## Version history
+
+- 0.10.0 — AI chat history persistence (local, deletable), Markdown rendering for AI replies, tab-based content fallback, batch management, pinning, import, statistics, multi-format export.
+- 0.3.0 — Initial listing draft: popup/context-menu save, tags and notes, search, export.
