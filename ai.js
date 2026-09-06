@@ -327,6 +327,13 @@ async function send() {
 
   const assistantEl = appendBubble("assistant", t("aiLoading"));
   let gotDelta = false;
+  let streamedRaw = "";
+  let renderPending = false;
+  const renderStreamed = () => {
+    renderPending = false;
+    renderMarkdown(assistantEl, streamedRaw);
+    scrollBottom();
+  };
 
   try {
     if (settings.includeContent) {
@@ -351,18 +358,18 @@ async function send() {
     ];
 
     const full = await streamTurn(history, text, (delta) => {
-      if (!gotDelta) {
-        assistantEl.textContent = "";
-        gotDelta = true;
+      gotDelta = true;
+      streamedRaw += delta;
+      if (!renderPending) {
+        renderPending = true;
+        setTimeout(renderStreamed, 80);
       }
-      assistantEl.textContent += delta;
-      scrollBottom();
     });
     const reply = full.trim() || t("aiEmptyReply");
     chat.push({ role: "assistant", content: reply });
   } catch (err) {
     if (gotDelta) {
-      chat.push({ role: "assistant", content: assistantEl.textContent.trim() });
+      chat.push({ role: "assistant", content: streamedRaw.trim() });
     }
     if (!stopRequested) {
       chat.push({ role: "error", content: t("aiErrorGeneric", (err && err.message) || String(err)) });
@@ -462,10 +469,240 @@ function renderChat() {
 function appendBubble(role, text) {
   const div = document.createElement("div");
   div.className = `msg ${role}`;
-  div.textContent = text;
+  if (role === "assistant") {
+    renderMarkdown(div, text);
+  } else {
+    div.textContent = text;
+  }
   els.messages.append(div);
   scrollBottom();
   return div;
+}
+
+const INLINE_MARKDOWN = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(__[^_\n]+__)|(\*[^*\n]+\*)|(~~[^~\n]+~~)|(!?\[[^\]\n]*\]\([^)\s]+\))/g;
+
+function renderMarkdown(container, text) {
+  container.replaceChildren();
+  parseBlocks(String(text || "").split("\n"), container);
+}
+
+function parseBlocks(lines, target) {
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) {
+      i += 1;
+      continue;
+    }
+
+    if (/^\s*```/.test(line)) {
+      const codeLines = [];
+      i += 1;
+      while (i < lines.length && !/^\s*```/.test(lines[i])) {
+        codeLines.push(lines[i]);
+        i += 1;
+      }
+      if (i < lines.length) {
+        i += 1;
+      }
+      target.append(buildCodeBlock(codeLines.join("\n")));
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+?)\s*#*$/);
+    if (heading) {
+      const h = document.createElement(`h${heading[1].length}`);
+      h.append(renderInline(heading[2]));
+      target.append(h);
+      i += 1;
+      continue;
+    }
+
+    if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+      target.append(document.createElement("hr"));
+      i += 1;
+      continue;
+    }
+
+    if (/^\s*>/.test(line)) {
+      const quoted = [];
+      while (i < lines.length && /^\s*>/.test(lines[i])) {
+        quoted.push(lines[i].replace(/^\s*>\s?/, ""));
+        i += 1;
+      }
+      const blockquote = document.createElement("blockquote");
+      parseBlocks(quoted, blockquote);
+      target.append(blockquote);
+      continue;
+    }
+
+    if (line.includes("|") && i + 1 < lines.length &&
+      /^\s*\|?\s*:?-{2,}[-: |]*\|?\s*$/.test(lines[i + 1])) {
+      const header = lines[i];
+      i += 2;
+      const rows = [];
+      while (i < lines.length && lines[i].includes("|") && lines[i].trim()) {
+        rows.push(lines[i]);
+        i += 1;
+      }
+      target.append(buildTable(header, rows));
+      continue;
+    }
+
+    if (/^\s*([-*+]|\d+[.)])\s+/.test(line)) {
+      const { node, next } = buildList(lines, i);
+      target.append(node);
+      i = next;
+      continue;
+    }
+
+    const paragraph = [];
+    while (i < lines.length && lines[i].trim() &&
+      !/^\s*```/.test(lines[i]) &&
+      !/^#{1,6}\s+/.test(lines[i]) &&
+      !/^\s*>/.test(lines[i]) &&
+      !/^\s*([-*+]|\d+[.)])\s+/.test(lines[i])) {
+      paragraph.push(lines[i]);
+      i += 1;
+    }
+    const p = document.createElement("p");
+    paragraph.forEach((part, index) => {
+      if (index) {
+        p.append(document.createElement("br"));
+      }
+      p.append(renderInline(part));
+    });
+    target.append(p);
+  }
+}
+
+function buildList(lines, start) {
+  const ordered = /^\s*\d/.test(lines[start]);
+  const listEl = document.createElement(ordered ? "ol" : "ul");
+  const baseIndent = lines[start].match(/^\s*/)[0].length;
+  let i = start;
+
+  while (i < lines.length) {
+    const match = lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+    if (!match) {
+      break;
+    }
+    const indent = match[1].length;
+    if (indent < baseIndent) {
+      break;
+    }
+    if (indent > baseIndent) {
+      const nested = buildList(lines, i);
+      const lastItem = listEl.lastElementChild;
+      if (lastItem) {
+        lastItem.append(nested.node);
+      }
+      i = nested.next;
+      continue;
+    }
+    const li = document.createElement("li");
+    li.append(renderInline(match[3]));
+    listEl.append(li);
+    i += 1;
+  }
+  return { node: listEl, next: i };
+}
+
+function buildTable(headerLine, rows) {
+  const cells = (row) => row
+    .replace(/^\s*\|/, "")
+    .replace(/\|\s*$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  for (const cell of cells(headerLine)) {
+    const th = document.createElement("th");
+    th.append(renderInline(cell));
+    headRow.append(th);
+  }
+  thead.append(headRow);
+  table.append(thead);
+
+  const tbody = document.createElement("tbody");
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    for (const cell of cells(row)) {
+      const td = document.createElement("td");
+      td.append(renderInline(cell));
+      tr.append(td);
+    }
+    tbody.append(tr);
+  }
+  table.append(tbody);
+  return table;
+}
+
+function buildCodeBlock(codeText) {
+  const pre = document.createElement("pre");
+  const code = document.createElement("code");
+  code.textContent = codeText;
+  pre.append(code);
+  return pre;
+}
+
+function safeHttpUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderInline(text) {
+  const fragment = document.createDocumentFragment();
+  let last = 0;
+  for (const match of String(text).matchAll(INLINE_MARKDOWN)) {
+    if (match.index > last) {
+      fragment.append(text.slice(last, match.index));
+    }
+    const [raw] = match;
+    if (match[1]) {
+      const code = document.createElement("code");
+      code.textContent = raw.slice(1, -1);
+      fragment.append(code);
+    } else if (match[2] || match[3]) {
+      const strong = document.createElement("strong");
+      strong.append(renderInline(raw.slice(2, -2)));
+      fragment.append(strong);
+    } else if (match[4]) {
+      const em = document.createElement("em");
+      em.append(renderInline(raw.slice(1, -1)));
+      fragment.append(em);
+    } else if (match[5]) {
+      const del = document.createElement("del");
+      del.append(renderInline(raw.slice(2, -2)));
+      fragment.append(del);
+    } else if (match[6]) {
+      const isImage = raw.startsWith("!");
+      const label = raw.slice(isImage ? 2 : 1, raw.indexOf("]("));
+      const url = raw.slice(raw.indexOf("](") + 2, -1);
+      const safe = safeHttpUrl(url);
+      if (safe) {
+        const a = document.createElement("a");
+        a.href = safe;
+        a.target = "_blank";
+        a.rel = "noreferrer noopener";
+        a.append(renderInline(label || url));
+        fragment.append(a);
+      } else {
+        fragment.append(raw);
+      }
+    }
+    last = match.index + raw.length;
+  }
+  if (last < text.length) {
+    fragment.append(text.slice(last));
+  }
+  return fragment;
 }
 
 function scrollBottom() {

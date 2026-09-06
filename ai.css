@@ -268,6 +268,91 @@ textarea:focus {
   background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
+  white-space: normal;
+}
+
+.msg.assistant > :first-child {
+  margin-top: 0;
+}
+
+.msg.assistant > :last-child {
+  margin-bottom: 0;
+}
+
+.msg.assistant p {
+  margin: 6px 0;
+}
+
+.msg.assistant h1,
+.msg.assistant h2,
+.msg.assistant h3,
+.msg.assistant h4,
+.msg.assistant h5,
+.msg.assistant h6 {
+  margin: 10px 0 4px;
+  font-size: 15px;
+}
+
+.msg.assistant ul,
+.msg.assistant ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.msg.assistant li {
+  margin: 2px 0;
+}
+
+.msg.assistant blockquote {
+  margin: 6px 0;
+  padding: 2px 10px;
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+}
+
+.msg.assistant pre {
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  overflow-x: auto;
+}
+
+.msg.assistant code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+.msg.assistant pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.msg.assistant a {
+  color: var(--accent);
+}
+
+.msg.assistant table {
+  margin: 8px 0;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.msg.assistant th,
+.msg.assistant td {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+.msg.assistant hr {
+  margin: 10px 0;
+  border: none;
+  border-top: 1px solid var(--line);
 }
 
 .msg.error {
