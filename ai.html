@@ -22,8 +22,15 @@
 
       <section class="chat" data-i18n-aria-label="aiChatLabel">
         <header class="chat-head">
-          <h1 data-i18n="aiPageTitle"></h1>
-          <span id="providerStatus" class="status muted"></span>
+          <div class="chat-head-row">
+            <h1 data-i18n="aiPageTitle"></h1>
+            <span id="providerStatus" class="status muted"></span>
+          </div>
+          <div class="chat-toolbar">
+            <select id="chatSelect" data-i18n-aria-label="aiChatHistoryLabel"></select>
+            <button id="newChatButton" type="button" data-i18n="aiNewChatButton"></button>
+            <button id="deleteChatButton" type="button" class="danger" data-i18n="aiDeleteChatButton"></button>
+          </div>
         </header>
 
         <div id="messages" class="messages" aria-live="polite"></div>

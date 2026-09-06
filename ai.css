@@ -222,17 +222,40 @@ textarea:focus {
 }
 
 .chat-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
+  display: grid;
+  gap: 10px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
 }
 
+.chat-head-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
 .chat-head h1 {
   margin: 0;
   font-size: 18px;
+}
+
+.chat-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-toolbar select {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-toolbar button {
+  flex: 0 0 auto;
+}
+
+button.danger {
+  color: var(--danger);
 }
 
 .status {

@@ -449,5 +449,26 @@
   },
   "aiLoading": {
     "message": "Fetching pages and generating the reply…"
+  },
+  "aiChatHistoryLabel": {
+    "message": "Chat history"
+  },
+  "aiChatPickerLabel": {
+    "message": "Pick a conversation"
+  },
+  "aiNewChatButton": {
+    "message": "New chat"
+  },
+  "aiDeleteChatButton": {
+    "message": "Delete chat"
+  },
+  "aiChatUntitled": {
+    "message": "Unnamed chat"
+  },
+  "confirmDeleteChat": {
+    "message": "Delete this conversation? This cannot be undone."
+  },
+  "messageChatDeleted": {
+    "message": "Conversation deleted."
   }
 }

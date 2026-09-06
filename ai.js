@@ -1,4 +1,5 @@
 const AI_SETTINGS_KEY = "laterbox.ai.v1";
+const AI_CHATS_KEY = "laterbox.ai.chats.v1";
 const DEFAULT_AI_SETTINGS = { provider: "auto", baseUrl: "", apiKey: "", model: "", includeContent: true };
 const PAGE_TEXT_LIMIT = 8000;
 const PAGE_CONTENT_MAX_ITEMS = 6;
@@ -6,6 +7,9 @@ const PAGE_FETCH_TIMEOUT = 15000;
 const PAGE_TEXT_MIN_LENGTH = 200;
 const TAB_LOAD_TIMEOUT = 15000;
 const TAB_SETTLE_DELAY = 800;
+const AI_CHATS_MAX = 30;
+const AI_CHAT_MESSAGES_MAX = 200;
+const byUpdatedDesc = (a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
 
 const els = {
   search: document.querySelector("#aiSearch"),
@@ -15,6 +19,9 @@ const els = {
   grantButton: document.querySelector("#grantButton"),
   itemList: document.querySelector("#itemList"),
   providerStatus: document.querySelector("#providerStatus"),
+  chatSelect: document.querySelector("#chatSelect"),
+  newChatButton: document.querySelector("#newChatButton"),
+  deleteChatButton: document.querySelector("#deleteChatButton"),
   messages: document.querySelector("#messages"),
   input: document.querySelector("#aiInput"),
   sendButton: document.querySelector("#sendButton"),
@@ -32,6 +39,8 @@ const els = {
 let items = [];
 let settings = { ...DEFAULT_AI_SETTINGS };
 let chat = [];
+let conversations = [];
+let currentChatId = null;
 let selectedIds = new Set();
 let lastContextKey = "";
 let streaming = false;
@@ -47,9 +56,13 @@ async function init() {
   document.title = `${t("extensionName")} · ${t("aiPageTitle")}`;
   await loadSettings();
   await loadItems();
+  await loadChats();
+  currentChatId = conversations.length ? [...conversations].sort(byUpdatedDesc)[0].id : null;
+  restoreChatIntoMemory();
   bindEvents();
   renderItemList();
   renderChat();
+  renderChatList();
   updateComposer();
   await updateStatus();
   await refreshPermissionBanner();
@@ -58,6 +71,9 @@ async function init() {
 function bindEvents() {
   els.search.addEventListener("input", renderItemList);
   els.grantButton.addEventListener("click", grantContentPermission);
+  els.chatSelect.addEventListener("change", () => switchChat(els.chatSelect.value));
+  els.newChatButton.addEventListener("click", newChat);
+  els.deleteChatButton.addEventListener("click", deleteChat);
   els.sendButton.addEventListener("click", send);
   els.stopButton.addEventListener("click", () => {
     stopRequested = true;
@@ -378,7 +394,132 @@ async function send() {
     controller = null;
     setStreaming(false);
     renderChat();
+    await saveCurrentChat();
+    renderChatList();
   }
+}
+
+async function loadChats() {
+  const result = await chrome.storage.local.get({ [AI_CHATS_KEY]: [] });
+  conversations = Array.isArray(result[AI_CHATS_KEY])
+    ? result[AI_CHATS_KEY].filter((c) => c && typeof c.id === "string" && Array.isArray(c.messages))
+    : [];
+}
+
+async function saveCurrentChat() {
+  if (!chat.length) {
+    return;
+  }
+  const now = new Date().toISOString();
+  if (!currentChatId) {
+    currentChatId = crypto.randomUUID();
+  }
+  let entry = conversations.find((c) => c.id === currentChatId);
+  if (!entry) {
+    entry = { id: currentChatId, title: chatTitle(), createdAt: now, messages: [] };
+    conversations.push(entry);
+  }
+  if (!entry.title) {
+    entry.title = chatTitle();
+  }
+  entry.updatedAt = now;
+  entry.messages = chat
+    .map((message) => ({
+      role: message.role,
+      // 用户消息只存提问本身,不把网页正文上下文写进存储
+      content: message.role === "user" ? (message.display || message.content) : message.content
+    }))
+    .slice(-AI_CHAT_MESSAGES_MAX);
+  conversations.sort(byUpdatedDesc);
+  if (conversations.length > AI_CHATS_MAX) {
+    conversations.length = AI_CHATS_MAX;
+  }
+  try {
+    await chrome.storage.local.set({ [AI_CHATS_KEY]: conversations });
+  } catch {
+    // 历史保存失败不影响对话本身
+  }
+}
+
+function restoreChatIntoMemory() {
+  const entry = conversations.find((c) => c.id === currentChatId);
+  chat = entry
+    ? entry.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+        display: message.role === "user" ? message.content : undefined
+      }))
+    : [];
+  lastContextKey = "";
+}
+
+async function switchChat(id) {
+  await saveCurrentChat();
+  currentChatId = id || null;
+  restoreChatIntoMemory();
+  renderChat();
+  renderChatList();
+  updateComposer();
+}
+
+async function newChat() {
+  await saveCurrentChat();
+  currentChatId = null;
+  chat = [];
+  lastContextKey = "";
+  renderChat();
+  renderChatList();
+  updateComposer();
+}
+
+async function deleteChat() {
+  if (!currentChatId) {
+    return;
+  }
+  if (!confirm(t("confirmDeleteChat"))) {
+    return;
+  }
+  conversations = conversations.filter((c) => c.id !== currentChatId);
+  currentChatId = conversations.length ? [...conversations].sort(byUpdatedDesc)[0].id : null;
+  restoreChatIntoMemory();
+  try {
+    await chrome.storage.local.set({ [AI_CHATS_KEY]: conversations });
+  } catch {
+    // ignore
+  }
+  renderChat();
+  renderChatList();
+  updateComposer();
+  showToast(t("messageChatDeleted"));
+}
+
+function chatTitle() {
+  const firstUser = chat.find((message) => message.role === "user");
+  const text = (firstUser?.display || firstUser?.content || "").trim();
+  if (!text) {
+    return t("aiChatUntitled");
+  }
+  return text.length > 30 ? `${text.slice(0, 30)}…` : text;
+}
+
+function renderChatList() {
+  const selected = currentChatId || "";
+  els.chatSelect.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = t("aiChatPickerLabel");
+  els.chatSelect.append(placeholder);
+  for (const entry of [...conversations].sort(byUpdatedDesc)) {
+    const option = document.createElement("option");
+    option.value = entry.id;
+    option.textContent = entry.title || t("aiChatUntitled");
+    els.chatSelect.append(option);
+  }
+  els.chatSelect.value = selected;
+  if (els.chatSelect.value !== selected) {
+    els.chatSelect.value = "";
+  }
+  els.deleteChatButton.disabled = !currentChatId;
 }
 
 function setStreaming(value) {

@@ -449,5 +449,26 @@
   },
   "aiLoading": {
     "message": "正在读取网页内容并生成回复……"
+  },
+  "aiChatHistoryLabel": {
+    "message": "历史对话"
+  },
+  "aiChatPickerLabel": {
+    "message": "选择历史对话"
+  },
+  "aiNewChatButton": {
+    "message": "新对话"
+  },
+  "aiDeleteChatButton": {
+    "message": "删除对话"
+  },
+  "aiChatUntitled": {
+    "message": "未命名对话"
+  },
+  "confirmDeleteChat": {
+    "message": "确定删除这个对话？删除后无法恢复。"
+  },
+  "messageChatDeleted": {
+    "message": "对话已删除。"
   }
 }
