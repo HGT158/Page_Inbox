@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>__MSG_extensionName__</title>
+    <link rel="stylesheet" href="dashboard.css">
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-head">
+        <h1 data-i18n="dashboardTitle"></h1>
+        <p class="muted" data-i18n="dashboardSubtitle"></p>
+        <p id="usageText" class="muted"></p>
+      </header>
+
+      <section class="card" data-i18n-aria-label="statOverviewTitle">
+        <h2 data-i18n="statOverviewTitle"></h2>
+        <div class="stat-grid">
+          <div class="stat">
+            <span id="statTotal" class="stat-num"></span>
+            <span class="stat-label" data-i18n="statTotal"></span>
+          </div>
+          <div class="stat">
+            <span id="statInbox" class="stat-num"></span>
+            <span class="stat-label" data-i18n="statInbox"></span>
+          </div>
+          <div class="stat">
+            <span id="statDone" class="stat-num"></span>
+            <span class="stat-label" data-i18n="statDone"></span>
+          </div>
+          <div class="stat">
+            <span id="statPinned" class="stat-num"></span>
+            <span class="stat-label" data-i18n="statPinned"></span>
+          </div>
+          <div class="stat">
+            <span id="statLast7" class="stat-num"></span>
+            <span class="stat-label" data-i18n="statLast7Days"></span>
+          </div>
+        </div>
+        <div class="top-lists">
+          <div>
+            <h3 data-i18n="topTagsTitle"></h3>
+            <ul id="topTags"></ul>
+          </div>
+          <div>
+            <h3 data-i18n="topSitesTitle"></h3>
+            <ul id="topSites"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" data-i18n-aria-label="importTitle">
+        <h2 data-i18n="importTitle"></h2>
+        <p class="muted" data-i18n="importDesc"></p>
+        <input id="importFile" type="file" accept=".json,application/json" hidden>
+        <div class="row">
+          <button id="importButton" type="button" data-i18n="importButton"></button>
+        </div>
+        <section id="dashMessage" class="message" hidden></section>
+      </section>
+
+      <section class="card" data-i18n-aria-label="manageTitle">
+        <h2 data-i18n="manageTitle"></h2>
+        <div class="row">
+          <button id="copyAllMarkdownButton" type="button" data-i18n="copyAllMarkdownButton"></button>
+          <button id="exportCsvButton" type="button" data-i18n="exportCsvButton"></button>
+          <button id="exportBookmarksButton" type="button" data-i18n="exportBookmarksButton"></button>
+        </div>
+      </section>
+    </main>
+
+    <script src="shared.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

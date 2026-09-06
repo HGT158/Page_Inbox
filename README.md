@@ -16,6 +16,7 @@
 - 一键复制 Markdown 链接
 - 导出 JSON 或 Markdown
 - 清理已处理条目
+- 「更多功能」页面：统计概览、导入 JSON 备份、导出 CSV / HTML 书签、一键复制全部 Markdown
 - 支持扩展界面与元数据本地化
 
 ## 技术说明

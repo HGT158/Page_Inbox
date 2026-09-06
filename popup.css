@@ -361,6 +361,10 @@ textarea:focus {
   padding-top: 2px;
 }
 
+.footer-wide {
+  grid-column: 1 / -1;
+}
+
 .batch-bar {
   display: grid;
   gap: 8px;

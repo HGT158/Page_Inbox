@@ -22,7 +22,8 @@ const els = {
   batchDeleteButton: document.querySelector("#batchDeleteButton"),
   batchTagRow: document.querySelector("#batchTagRow"),
   batchTagInput: document.querySelector("#batchTagInput"),
-  batchTagApplyButton: document.querySelector("#batchTagApplyButton")
+  batchTagApplyButton: document.querySelector("#batchTagApplyButton"),
+  dashboardButton: document.querySelector("#dashboardButton")
 };
 
 let items = [];
@@ -37,28 +38,6 @@ async function init() {
   await loadItems();
   bindEvents();
   render();
-}
-
-function t(messageName, substitutions) {
-  return chrome.i18n.getMessage(messageName, substitutions) || messageName;
-}
-
-function localizeDocument() {
-  document.documentElement.lang = chrome.i18n.getUILanguage();
-  document.title = t("extensionName");
-  localizeElement(document);
-}
-
-function localizeElement(root) {
-  root.querySelectorAll("[data-i18n]").forEach((element) => {
-    element.textContent = t(element.dataset.i18n);
-  });
-  root.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
-    element.placeholder = t(element.dataset.i18nPlaceholder);
-  });
-  root.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
-    element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
-  });
 }
 
 function bindEvents() {
@@ -86,6 +65,9 @@ function bindEvents() {
   });
   els.batchDoneButton.addEventListener("click", batchMarkDone);
   els.batchDeleteButton.addEventListener("click", batchDelete);
+  els.dashboardButton.addEventListener("click", () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
+  });
 }
 
 async function loadItems() {
@@ -488,23 +470,7 @@ function exportMarkdown() {
     return;
   }
 
-  const lines = items.map((item) => {
-    const tags = item.tags.map((tag) => `#${tag}`).join(" ");
-    const note = item.note ? ` - ${item.note}` : "";
-    return `- ${toMarkdownLink(item)}${tags ? ` ${tags}` : ""}${note}`;
-  });
-
-  downloadText(lines.join("\n"), `laterbox-${today()}.md`, "text/markdown");
-}
-
-function downloadText(text, filename, type) {
-  const blob = new Blob([text], { type });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  downloadText(buildMarkdownLines(items).join("\n"), `laterbox-${today()}.md`, "text/markdown");
 }
 
 function showMessage(text) {
@@ -516,34 +482,8 @@ function showMessage(text) {
   }, 2200);
 }
 
-function normalizeItem(item) {
-  return {
-    ...item,
-    description: item.description || "",
-    tags: Array.isArray(item.tags) ? item.tags : [],
-    note: item.note || "",
-    status: item.status || "inbox",
-    pinned: Boolean(item.pinned)
-  };
-}
-
-function parseTags(value) {
-  return Array.from(new Set(value
-    .split(/[,，\s]+/)
-    .map((tag) => tag.trim())
-    .filter(Boolean)));
-}
-
 function getAllTags() {
   return Array.from(new Set(items.flatMap((item) => item.tags))).sort((a, b) => a.localeCompare(b));
-}
-
-function toMarkdownLink(item) {
-  return `[${escapeMarkdown(item.title || item.url)}](${item.url})`;
-}
-
-function escapeMarkdown(text) {
-  return text.replaceAll("[", "\\[").replaceAll("]", "\\]");
 }
 
 function normalizeUrl(rawUrl) {
@@ -557,8 +497,4 @@ function normalizeUrl(rawUrl) {
   } catch {
     return "";
   }
-}
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
 }

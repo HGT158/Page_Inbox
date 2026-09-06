@@ -209,5 +209,93 @@
         "content": "$1"
       }
     }
+  },
+  "openDashboardButton": {
+    "message": "More tools"
+  },
+  "dashboardTitle": {
+    "message": "More tools"
+  },
+  "dashboardSubtitle": {
+    "message": "View stats, import backups, and export in more formats."
+  },
+  "statOverviewTitle": {
+    "message": "Stats"
+  },
+  "statTotal": {
+    "message": "Total items"
+  },
+  "statInbox": {
+    "message": "Inbox"
+  },
+  "statDone": {
+    "message": "Done"
+  },
+  "statPinned": {
+    "message": "Pinned"
+  },
+  "statLast7Days": {
+    "message": "Saved in 7 days"
+  },
+  "topTagsTitle": {
+    "message": "Top 5 tags"
+  },
+  "topSitesTitle": {
+    "message": "Top 5 sites"
+  },
+  "emptyStats": {
+    "message": "No data"
+  },
+  "storageUsage": {
+    "message": "$COUNT$ items · about $SIZE$ KB",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "size": {
+        "content": "$2"
+      }
+    }
+  },
+  "importTitle": {
+    "message": "Import"
+  },
+  "importDesc": {
+    "message": "Pick a previously exported JSON file; entries are merged and deduplicated by URL."
+  },
+  "importButton": {
+    "message": "Import JSON file"
+  },
+  "importResult": {
+    "message": "Imported $ADDED$ items, skipped $SKIPPED$ duplicates.",
+    "placeholders": {
+      "added": {
+        "content": "$1"
+      },
+      "skipped": {
+        "content": "$2"
+      }
+    }
+  },
+  "importInvalid": {
+    "message": "Invalid file, import failed."
+  },
+  "manageTitle": {
+    "message": "Export & quick actions"
+  },
+  "copyAllMarkdownButton": {
+    "message": "Copy all as Markdown"
+  },
+  "exportCsvButton": {
+    "message": "Export CSV"
+  },
+  "exportBookmarksButton": {
+    "message": "Export HTML bookmarks"
+  },
+  "messageAllMarkdownCopied": {
+    "message": "All items copied."
+  },
+  "messageClipboardError": {
+    "message": "Copy failed. Please try again."
   }
 }
