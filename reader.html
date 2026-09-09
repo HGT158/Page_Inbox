@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>__MSG_readerPageTitle__</title>
+    <link rel="stylesheet" href="reader.css">
+  </head>
+  <body class="theme-light font-sans width-normal">
+    <header class="reader-toolbar">
+      <div class="toolbar-left">
+        <a id="backButton" class="toolbar-btn text-btn" href="dashboard.html" data-i18n-aria-label="readerBackToDashboard" title="返回更多功能">
+          ← <span data-i18n="readerBackToDashboard"></span>
+        </a>
+        <button id="drawerToggle" class="toolbar-btn" type="button" data-i18n-aria-label="readerDrawerTitle">
+          📑 <span data-i18n="readerDrawerTitle"></span>
+        </button>
+        <span class="toolbar-divider"></span>
+        <a id="sourceSiteLink" class="source-link" target="_blank" rel="noreferrer" title="打开原网页">
+          <span id="sourceSiteText"></span> ↗
+        </a>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- 字体选择 -->
+        <select id="fontFamilySelect" class="toolbar-select" aria-label="字体风格">
+          <option value="sans" data-i18n="readerFontSans"></option>
+          <option value="serif" data-i18n="readerFontSerif"></option>
+          <option value="mono" data-i18n="readerFontMono"></option>
+        </select>
+
+        <!-- 字号调节 -->
+        <div class="font-size-stepper" role="group" aria-label="字号大小">
+          <button id="fontDecBtn" class="toolbar-btn stepper-btn" type="button" title="缩小字号">A-</button>
+          <span id="fontSizeDisplay" class="font-size-text">18px</span>
+          <button id="fontIncBtn" class="toolbar-btn stepper-btn" type="button" title="放大字号">A+</button>
+        </div>
+
+        <!-- 页面宽度 -->
+        <select id="contentWidthSelect" class="toolbar-select" aria-label="阅读宽度">
+          <option value="compact" data-i18n="readerWidthCompact"></option>
+          <option value="normal" data-i18n="readerWidthNormal"></option>
+          <option value="wide" data-i18n="readerWidthWide"></option>
+        </select>
+
+        <!-- 主题切换 -->
+        <div class="theme-picker" role="radiogroup" aria-label="阅读主题">
+          <button class="theme-btn theme-btn-light active" type="button" data-theme="light" data-i18n="readerThemeLight" title="浅色明亮"></button>
+          <button class="theme-btn theme-btn-sepia" type="button" data-theme="sepia" data-i18n="readerThemeSepia" title="羊皮纸护眼"></button>
+          <button class="theme-btn theme-btn-dark" type="button" data-theme="dark" data-i18n="readerThemeDark" title="暗黑模式"></button>
+          <button class="theme-btn theme-btn-black" type="button" data-theme="black" data-i18n="readerThemeBlack" title="极黑夜间"></button>
+        </div>
+
+        <span class="toolbar-divider"></span>
+
+        <!-- 标记完成 -->
+        <button id="toggleStatusBtn" class="toolbar-btn status-action-btn" type="button"></button>
+
+        <!-- 复制正文 -->
+        <button id="copyTextBtn" class="toolbar-btn" type="button" data-i18n="readerCopyText"></button>
+
+        <!-- 原文外链 -->
+        <a id="openOriginalLink" class="toolbar-btn primary-outline" target="_blank" rel="noreferrer" data-i18n="readerOpenOriginal"></a>
+      </div>
+    </header>
+
+    <div class="reader-layout">
+      <!-- 侧边抽屉：文章列表 -->
+      <aside id="drawer" class="reader-drawer" hidden>
+        <div class="drawer-head">
+          <h2 data-i18n="readerDrawerTitle"></h2>
+          <button id="drawerCloseBtn" class="close-btn" type="button" data-i18n-aria-label="readerDrawerClose">×</button>
+        </div>
+        <div class="drawer-search-wrap">
+          <input id="drawerSearchInput" type="search" data-i18n-placeholder="readerSearchPlaceholder">
+        </div>
+        <div id="drawerList" class="drawer-list"></div>
+      </aside>
+
+      <!-- 正文阅读主视口 -->
+      <main class="reader-viewport">
+        <article id="articleContainer" class="reader-article">
+          <header class="article-header">
+            <h1 id="articleTitle"></h1>
+            <div class="article-meta">
+              <span id="articleDomain" class="meta-item"></span>
+              <span class="meta-dot">·</span>
+              <span id="articleDate" class="meta-item"></span>
+              <span class="meta-dot">·</span>
+              <span id="articleStats" class="meta-item"></span>
+            </div>
+            <div id="articleTags" class="article-tags"></div>
+          </header>
+
+          <!-- 加载中指示器 -->
+          <div id="loadingIndicator" class="reader-state loading-state">
+            <div class="spinner"></div>
+            <p data-i18n="readerLoading"></p>
+          </div>
+
+          <!-- 权限缺失提示 -->
+          <div id="permissionCard" class="reader-state card-state" hidden>
+            <div class="state-icon">🔒</div>
+            <p data-i18n="readerPermissionNotice"></p>
+            <div class="state-actions">
+              <button id="grantPermBtn" class="primary-btn" type="button" data-i18n="readerGrantButton"></button>
+              <a id="permOriginalLink" class="secondary-btn" target="_blank" rel="noreferrer" data-i18n="readerOpenOriginal"></a>
+            </div>
+          </div>
+
+          <!-- 内容为空或失败提示 -->
+          <div id="errorCard" class="reader-state card-state" hidden>
+            <div class="state-icon">📄</div>
+            <p data-i18n="readerEmpty"></p>
+            <div class="state-actions">
+              <button id="retryBtn" class="primary-btn" type="button" data-i18n="readerRetryButton"></button>
+              <a id="errOriginalLink" class="secondary-btn" target="_blank" rel="noreferrer" data-i18n="readerOpenOriginal"></a>
+            </div>
+          </div>
+
+          <!-- 文章正文段落区 -->
+          <div id="articleBody" class="article-body"></div>
+        </article>
+      </main>
+    </div>
+
+    <!-- 简易 Toast -->
+    <div id="readerToast" class="reader-toast" hidden></div>
+
+    <script src="shared.js"></script>
+    <script src="extractor.js"></script>
+    <script src="reader.js"></script>
+  </body>
+</html>

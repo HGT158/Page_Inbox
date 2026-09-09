@@ -3,10 +3,6 @@ const AI_CHATS_KEY = "laterbox.ai.chats.v1";
 const DEFAULT_AI_SETTINGS = { provider: "auto", baseUrl: "", apiKey: "", model: "", includeContent: true };
 const PAGE_TEXT_LIMIT = 8000;
 const PAGE_CONTENT_MAX_ITEMS = 6;
-const PAGE_FETCH_TIMEOUT = 15000;
-const PAGE_TEXT_MIN_LENGTH = 200;
-const TAB_LOAD_TIMEOUT = 15000;
-const TAB_SETTLE_DELAY = 800;
 const AI_CHATS_MAX = 30;
 const AI_CHAT_MESSAGES_MAX = 200;
 const byUpdatedDesc = (a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
@@ -1002,131 +998,11 @@ async function prefetchSelectedContent(selectedItems) {
     .filter((item) => settings.includeContent && isSupportedWebUrl(item.url) && !pageCache.has(item.url))
     .slice(0, PAGE_CONTENT_MAX_ITEMS);
   await Promise.all(targets.map(async (item) => {
-    const text = await loadPageText(item.url);
+    const text = await loadPageText(item.url, PAGE_TEXT_LIMIT);
     if (text) {
       pageCache.set(item.url, text);
     }
   }));
-}
-
-async function loadPageText(url) {
-  let text = await fetchPageText(url);
-  if (!text || text.length < PAGE_TEXT_MIN_LENGTH) {
-    const tabText = await extractViaTab(url);
-    if (tabText && tabText.length > text.length) {
-      text = tabText;
-    }
-  }
-  return text ? text.slice(0, PAGE_TEXT_LIMIT) : "";
-}
-
-async function extractViaTab(url) {
-  let origin;
-  try {
-    origin = `${new URL(url).origin}/*`;
-  } catch {
-    return "";
-  }
-  try {
-    if (!(await chrome.permissions.contains({ origins: [origin] }))) {
-      return "";
-    }
-  } catch {
-    return "";
-  }
-
-  let tab = null;
-  try {
-    tab = await chrome.tabs.create({ url, active: false });
-    await waitForTabLoaded(tab.id, TAB_LOAD_TIMEOUT);
-    await new Promise((resolve) => setTimeout(resolve, TAB_SETTLE_DELAY));
-    const [injection] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: extractPageMainText
-    });
-    return String(injection?.result || "").trim();
-  } catch {
-    return "";
-  } finally {
-    if (tab) {
-      chrome.tabs.remove(tab.id).catch(() => {});
-    }
-  }
-}
-
-function waitForTabLoaded(tabId, timeoutMs) {
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      chrome.tabs.onUpdated.removeListener(listener);
-      resolve();
-    };
-    const listener = (updatedTabId, changeInfo) => {
-      if (updatedTabId === tabId && changeInfo.status === "complete") {
-        finish();
-      }
-    };
-    chrome.tabs.onUpdated.addListener(listener);
-    chrome.tabs.get(tabId).then((tab) => {
-      if (tab.status === "complete") {
-        finish();
-      }
-    }).catch(finish);
-    setTimeout(finish, timeoutMs);
-  });
-}
-
-// Injected into the page via chrome.scripting; must stay self-contained.
-function extractPageMainText() {
-  document.querySelectorAll("script, style, noscript, svg, iframe, template, nav, footer, header, aside, form, button")
-    .forEach((el) => el.remove());
-  const main = document.querySelector("article, main, [role=\"main\"], #content, .content") || document.body || document.documentElement;
-  document.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
-  for (const tag of ["p", "div", "li", "tr", "section", "article", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre", "dd", "dt"]) {
-    document.querySelectorAll(tag).forEach((el) => el.append("\n"));
-  }
-  return (main.textContent || "")
-    .replace(/[ \t\f\v]+/g, " ")
-    .replace(/\s*\n\s*/g, "\n")
-    .replace(/\n{2,}/g, "\n")
-    .trim();
-}
-
-async function fetchPageText(url) {
-  try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(PAGE_FETCH_TIMEOUT) });
-    if (!response.ok) {
-      return "";
-    }
-    const html = await response.text();
-    return extractReadableText(html).slice(0, PAGE_TEXT_LIMIT);
-  } catch {
-    return "";
-  }
-}
-
-function cleanExtractedText(text) {
-  return (text || "")
-    .replace(/[ \t\f\v]+/g, " ")
-    .replace(/\s*\n\s*/g, "\n")
-    .replace(/\n{2,}/g, "\n")
-    .trim();
-}
-
-function extractReadableText(html) {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.querySelectorAll("script, style, noscript, svg, iframe, template, nav, footer, header, aside, form, button")
-    .forEach((el) => el.remove());
-  const main = doc.querySelector("article, main, [role=\"main\"], #content, .content") || doc.body || doc.documentElement;
-  doc.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
-  for (const tag of ["p", "div", "li", "tr", "section", "article", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre", "dd", "dt"]) {
-    doc.querySelectorAll(tag).forEach((el) => el.append("\n"));
-  }
-  return cleanExtractedText(main.textContent || "");
 }
 
 function systemPrompt() {

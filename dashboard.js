@@ -13,6 +13,10 @@ const els = {
   exportCsvButton: document.querySelector("#exportCsvButton"),
   exportBookmarksButton: document.querySelector("#exportBookmarksButton"),
   openAiButton: document.querySelector("#openAiButton"),
+  openReaderButton: document.querySelector("#openReaderButton"),
+  dashSearchInput: document.querySelector("#dashSearchInput"),
+  dashStatusFilter: document.querySelector("#dashStatusFilter"),
+  dashArticlesList: document.querySelector("#dashArticlesList"),
   message: document.querySelector("#dashMessage")
 };
 
@@ -37,6 +41,11 @@ function bindEvents() {
   els.openAiButton.addEventListener("click", () => {
     chrome.tabs.create({ url: chrome.runtime.getURL("ai.html") });
   });
+  els.openReaderButton.addEventListener("click", () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL("reader.html") });
+  });
+  els.dashSearchInput.addEventListener("input", renderArticles);
+  els.dashStatusFilter.addEventListener("change", renderArticles);
 }
 
 async function loadItems() {
@@ -55,6 +64,7 @@ async function persistItems() {
 function renderAll() {
   renderStats();
   renderUsage();
+  renderArticles();
 }
 
 function renderStats() {
@@ -271,4 +281,117 @@ function showMessage(text) {
   showMessage.timer = window.setTimeout(() => {
     els.message.hidden = true;
   }, 2600);
+}
+
+function renderArticles() {
+  const query = (els.dashSearchInput.value || "").trim().toLowerCase();
+  const status = els.dashStatusFilter.value || "all";
+
+  const filtered = items.filter((item) => {
+    if (status !== "all" && item.status !== status) {
+      return false;
+    }
+    if (!query) {
+      return true;
+    }
+    const matchTitle = (item.title || "").toLowerCase().includes(query);
+    const matchUrl = (item.url || "").toLowerCase().includes(query);
+    const matchNote = (item.note || "").toLowerCase().includes(query);
+    const matchTags = (item.tags || []).some((tag) => tag.toLowerCase().includes(query));
+    return matchTitle || matchUrl || matchNote || matchTags;
+  }).sort((a, b) => {
+    if (b.pinned !== a.pinned) {
+      return Number(b.pinned) - Number(a.pinned);
+    }
+    return String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || ""));
+  });
+
+  els.dashArticlesList.replaceChildren();
+
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "muted dash-empty";
+    empty.textContent = t("dashArticlesEmpty");
+    els.dashArticlesList.append(empty);
+    return;
+  }
+
+  for (const item of filtered) {
+    const card = document.createElement("div");
+    card.className = "dash-article-item";
+    card.dataset.id = item.id;
+
+    const infoWrap = document.createElement("div");
+    infoWrap.className = "dash-article-info";
+
+    const titleLink = document.createElement("a");
+    titleLink.className = "dash-article-title";
+    titleLink.href = item.url;
+    titleLink.target = "_blank";
+    titleLink.rel = "noreferrer";
+    titleLink.textContent = item.title || item.url;
+
+    const metaRow = document.createElement("div");
+    metaRow.className = "dash-article-meta";
+
+    let host = "";
+    try {
+      host = new URL(item.url).hostname;
+    } catch {
+      host = "";
+    }
+    const hostSpan = document.createElement("span");
+    hostSpan.className = "dash-article-host";
+    hostSpan.textContent = host;
+
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "dash-article-date";
+    dateSpan.textContent = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "";
+
+    metaRow.append(hostSpan, dateSpan);
+
+    if (item.tags && item.tags.length) {
+      const tagsWrap = document.createElement("span");
+      tagsWrap.className = "dash-article-tags";
+      for (const tag of item.tags) {
+        const tagBadge = document.createElement("span");
+        tagBadge.className = "dash-tag-badge";
+        tagBadge.textContent = `#${tag}`;
+        tagsWrap.append(tagBadge);
+      }
+      metaRow.append(tagsWrap);
+    }
+
+    infoWrap.append(titleLink, metaRow);
+
+    const actionWrap = document.createElement("div");
+    actionWrap.className = "dash-article-actions";
+
+    const readerBtn = document.createElement("button");
+    readerBtn.type = "button";
+    readerBtn.className = "dash-btn-reader";
+    readerBtn.textContent = t("readerModeButton");
+    readerBtn.addEventListener("click", () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL(`reader.html?id=${item.id}`) });
+    });
+
+    const statusBtn = document.createElement("button");
+    statusBtn.type = "button";
+    statusBtn.className = "dash-btn-status";
+    statusBtn.textContent = item.status === "done" ? t("moveBackButton") : t("markDoneButton");
+    statusBtn.addEventListener("click", async () => {
+      const nextStatus = item.status === "done" ? "inbox" : "done";
+      const index = items.findIndex((i) => i.id === item.id);
+      if (index >= 0) {
+        items[index].status = nextStatus;
+        items[index].updatedAt = new Date().toISOString();
+        await persistItems();
+        renderAll();
+      }
+    });
+
+    actionWrap.append(readerBtn, statusBtn);
+    card.append(infoWrap, actionWrap);
+    els.dashArticlesList.append(card);
+  }
 }

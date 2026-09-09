@@ -250,7 +250,7 @@ function renderItem(item) {
   const url = fragment.querySelector(".item-url");
   const description = fragment.querySelector(".item-description");
   const tags = fragment.querySelector(".item-tags");
-  const note = fragment.querySelector(".item-note");
+  const readerButton = fragment.querySelector(".reader-button");
   const statusButton = fragment.querySelector(".status-button");
   const markdownButton = fragment.querySelector(".markdown-button");
   const deleteButton = fragment.querySelector(".delete-button");
@@ -276,6 +276,9 @@ function renderItem(item) {
   checkbox.checked = selectedIds.has(item.id);
   checkbox.setAttribute("aria-label", t("selectItemLabel"));
 
+  readerButton.addEventListener("click", () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL(`reader.html?id=${item.id}`) });
+  });
   tags.addEventListener("change", () => updateItem(item.id, { tags: parseTags(tags.value) }));
   note.addEventListener("change", () => updateItem(item.id, { note: note.value.trim() }));
   statusButton.addEventListener("click", () => {

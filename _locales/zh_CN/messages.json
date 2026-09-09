@@ -506,5 +506,115 @@
   },
   "messageChatDeleted": {
     "message": "对话已删除。"
+  },
+  "readerModeButton": {
+    "message": "📖 纯净阅读"
+  },
+  "readerPageTitle": {
+    "message": "纯净阅读"
+  },
+  "readerCardTitle": {
+    "message": "极简纯净阅读"
+  },
+  "readerCardDesc": {
+    "message": "去除侧边栏、浮动横幅与广告干扰，沉浸式极简排版呈现正文，提供字号调节与护眼暗黑模式。"
+  },
+  "openReaderButton": {
+    "message": "开启纯净阅读"
+  },
+  "readerDrawerTitle": {
+    "message": "文章列表"
+  },
+  "readerDrawerClose": {
+    "message": "收起列表"
+  },
+  "readerBackToDashboard": {
+    "message": "返回更多功能"
+  },
+  "readerBackToInbox": {
+    "message": "稍后处理"
+  },
+  "readerThemeLight": {
+    "message": "浅色"
+  },
+  "readerThemeSepia": {
+    "message": "羊皮纸"
+  },
+  "readerThemeDark": {
+    "message": "暗黑"
+  },
+  "readerThemeBlack": {
+    "message": "纯黑"
+  },
+  "readerFontSans": {
+    "message": "无衬线"
+  },
+  "readerFontSerif": {
+    "message": "衬线"
+  },
+  "readerFontMono": {
+    "message": "等宽"
+  },
+  "readerWidthCompact": {
+    "message": "紧凑"
+  },
+  "readerWidthNormal": {
+    "message": "适中"
+  },
+  "readerWidthWide": {
+    "message": "宽屏"
+  },
+  "readerLoading": {
+    "message": "正在抽取页面正文..."
+  },
+  "readerEmpty": {
+    "message": "未能提取到有效正文内容"
+  },
+  "readerPermissionNotice": {
+    "message": "需要获取该网站的读取权限，以便抽取完整正文。"
+  },
+  "readerGrantButton": {
+    "message": "授予访问权限"
+  },
+  "readerRetryButton": {
+    "message": "重新抽取"
+  },
+  "readerOpenOriginal": {
+    "message": "打开原始网页"
+  },
+  "readerCopyText": {
+    "message": "复制正文"
+  },
+  "readerTextCopied": {
+    "message": "正文已复制到剪贴板"
+  },
+  "readerStats": {
+    "message": "约 $WORDS$ 字 · 预计阅读 $TIME$ 分钟",
+    "placeholders": {
+      "words": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
+    }
+  },
+  "readerMarkDone": {
+    "message": "标记为已读"
+  },
+  "readerMarkInbox": {
+    "message": "移回待处理"
+  },
+  "readerSearchPlaceholder": {
+    "message": "搜索文章标题或链接"
+  },
+  "dashArticlesTitle": {
+    "message": "稍后阅读文章"
+  },
+  "dashArticlesDesc": {
+    "message": "在扩展中浏览已保存的所有网页，支持搜索、状态筛选与一键进入极简纯净阅读。"
+  },
+  "dashArticlesEmpty": {
+    "message": "暂无相关文章"
   }
 }

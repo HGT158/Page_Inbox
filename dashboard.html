@@ -50,6 +50,14 @@
         </div>
       </section>
 
+      <section class="card" data-i18n-aria-label="readerCardTitle">
+        <h2 data-i18n="readerCardTitle"></h2>
+        <p class="muted" data-i18n="readerCardDesc"></p>
+        <div class="row">
+          <button id="openReaderButton" type="button" class="primary" data-i18n="openReaderButton"></button>
+        </div>
+      </section>
+
       <section class="card" data-i18n-aria-label="aiCardTitle">
         <h2 data-i18n="aiCardTitle"></h2>
         <p class="muted" data-i18n="aiCardDesc"></p>
@@ -75,6 +83,20 @@
           <button id="exportCsvButton" type="button" data-i18n="exportCsvButton"></button>
           <button id="exportBookmarksButton" type="button" data-i18n="exportBookmarksButton"></button>
         </div>
+      <section class="card" data-i18n-aria-label="dashArticlesTitle">
+        <div class="card-head-row">
+          <h2 data-i18n="dashArticlesTitle"></h2>
+          <div class="dash-filter-controls">
+            <input id="dashSearchInput" type="search" data-i18n-placeholder="searchPlaceholder">
+            <select id="dashStatusFilter" data-i18n-aria-label="statusFilterLabel">
+              <option value="all" data-i18n="statusAll"></option>
+              <option value="inbox" data-i18n="statusInbox"></option>
+              <option value="done" data-i18n="statusDone"></option>
+            </select>
+          </div>
+        </div>
+        <p class="muted" data-i18n="dashArticlesDesc"></p>
+        <div id="dashArticlesList" class="dash-articles-list"></div>
       </section>
     </main>
 

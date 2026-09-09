@@ -506,5 +506,115 @@
   },
   "messageChatDeleted": {
     "message": "Conversation deleted."
+  },
+  "readerModeButton": {
+    "message": "📖 Reader"
+  },
+  "readerPageTitle": {
+    "message": "Reader Mode"
+  },
+  "readerCardTitle": {
+    "message": "Pure Reader Mode"
+  },
+  "readerCardDesc": {
+    "message": "Distraction-free reading without sidebars or banners. Clean typography, adjustable font size, and multiple dark themes."
+  },
+  "openReaderButton": {
+    "message": "Open Reader"
+  },
+  "readerDrawerTitle": {
+    "message": "Saved Articles"
+  },
+  "readerDrawerClose": {
+    "message": "Close List"
+  },
+  "readerBackToDashboard": {
+    "message": "Back to More Features"
+  },
+  "readerBackToInbox": {
+    "message": "Page Inbox"
+  },
+  "readerThemeLight": {
+    "message": "Light"
+  },
+  "readerThemeSepia": {
+    "message": "Sepia"
+  },
+  "readerThemeDark": {
+    "message": "Dark"
+  },
+  "readerThemeBlack": {
+    "message": "OLED Black"
+  },
+  "readerFontSans": {
+    "message": "Sans"
+  },
+  "readerFontSerif": {
+    "message": "Serif"
+  },
+  "readerFontMono": {
+    "message": "Mono"
+  },
+  "readerWidthCompact": {
+    "message": "Compact"
+  },
+  "readerWidthNormal": {
+    "message": "Normal"
+  },
+  "readerWidthWide": {
+    "message": "Wide"
+  },
+  "readerLoading": {
+    "message": "Extracting article content..."
+  },
+  "readerEmpty": {
+    "message": "No readable content could be extracted"
+  },
+  "readerPermissionNotice": {
+    "message": "Permission needed for this website to extract full article text."
+  },
+  "readerGrantButton": {
+    "message": "Grant Permission"
+  },
+  "readerRetryButton": {
+    "message": "Retry Extraction"
+  },
+  "readerOpenOriginal": {
+    "message": "Open Original Page"
+  },
+  "readerCopyText": {
+    "message": "Copy Text"
+  },
+  "readerTextCopied": {
+    "message": "Text copied to clipboard"
+  },
+  "readerStats": {
+    "message": "~$WORDS$ words · ~$TIME$ min read",
+    "placeholders": {
+      "words": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
+    }
+  },
+  "readerMarkDone": {
+    "message": "Mark as Read"
+  },
+  "readerMarkInbox": {
+    "message": "Move back to Inbox"
+  },
+  "readerSearchPlaceholder": {
+    "message": "Search title or URL"
+  },
+  "dashArticlesTitle": {
+    "message": "Saved Articles"
+  },
+  "dashArticlesDesc": {
+    "message": "Browse all saved pages with search, status filters, and one-click pure reader mode."
+  },
+  "dashArticlesEmpty": {
+    "message": "No articles found"
   }
 }
