@@ -18,10 +18,23 @@ const els = {
   dashSearchInput: document.querySelector("#dashSearchInput"),
   dashStatusFilter: document.querySelector("#dashStatusFilter"),
   dashArticlesList: document.querySelector("#dashArticlesList"),
-  message: document.querySelector("#dashMessage")
+  message: document.querySelector("#dashMessage"),
+  serendipityCard: document.querySelector("#serendipityCard"),
+  backlogCountText: document.querySelector("#backlogCountText"),
+  serendipityEmptyState: document.querySelector("#serendipityEmptyState"),
+  serendipityContent: document.querySelector("#serendipityContent"),
+  serendipityDaysBadge: document.querySelector("#serendipityDaysBadge"),
+  serendipityMainTitle: document.querySelector("#serendipityMainTitle"),
+  serendipityUrl: document.querySelector("#serendipityUrl"),
+  serendipityMetaRow: document.querySelector("#serendipityMetaRow"),
+  dashSerendipityReadBtn: document.querySelector("#dashSerendipityReadBtn"),
+  dashSerendipityOpenBtn: document.querySelector("#dashSerendipityOpenBtn"),
+  dashSerendipityDoneBtn: document.querySelector("#dashSerendipityDoneBtn"),
+  dashSerendipityNextBtn: document.querySelector("#dashSerendipityNextBtn")
 };
 
 let items = [];
+let currentPickedDashItem = null;
 
 init();
 
@@ -57,6 +70,36 @@ function bindEvents() {
       }
     });
   }
+  if (els.dashSerendipityNextBtn) {
+    els.dashSerendipityNextBtn.addEventListener("click", () => renderSerendipity(true));
+  }
+  if (els.dashSerendipityReadBtn) {
+    els.dashSerendipityReadBtn.addEventListener("click", () => {
+      if (currentPickedDashItem) {
+        chrome.tabs.create({ url: chrome.runtime.getURL(`reader.html?id=${currentPickedDashItem.id}`) });
+      }
+    });
+  }
+  if (els.dashSerendipityOpenBtn) {
+    els.dashSerendipityOpenBtn.addEventListener("click", () => {
+      if (currentPickedDashItem) {
+        chrome.tabs.create({ url: currentPickedDashItem.url });
+      }
+    });
+  }
+  if (els.dashSerendipityDoneBtn) {
+    els.dashSerendipityDoneBtn.addEventListener("click", async () => {
+      if (!currentPickedDashItem) return;
+      const index = items.findIndex((i) => i.id === currentPickedDashItem.id);
+      if (index >= 0) {
+        items[index].status = "done";
+        items[index].updatedAt = new Date().toISOString();
+        await persistItems();
+        showMessage(t("messageMarkDoneSuccess") || "已标记完成");
+        renderAll();
+      }
+    });
+  }
   els.dashSearchInput.addEventListener("input", renderArticles);
   els.dashStatusFilter.addEventListener("change", renderArticles);
 }
@@ -76,6 +119,7 @@ async function persistItems() {
 
 function renderAll() {
   renderStats();
+  renderSerendipity();
   renderUsage();
   renderArticles();
 }
@@ -408,3 +452,68 @@ function renderArticles() {
     els.dashArticlesList.append(card);
   }
 }
+
+function renderSerendipity(forceNew = false) {
+  if (!els.serendipityCard) {
+    return;
+  }
+
+  const inboxItems = items.filter((it) => it.status !== "done");
+  const aged30Items = inboxItems.filter((it) => getDaysAgo(it.createdAt) >= 30);
+  const ratio = inboxItems.length ? Math.round((aged30Items.length / inboxItems.length) * 100) : 0;
+
+  if (els.backlogCountText) {
+    els.backlogCountText.textContent = `${t("serendipityBacklogStat")}: ${aged30Items.length} (${ratio}%)`;
+  }
+
+  if (inboxItems.length === 0) {
+    if (els.serendipityContent) els.serendipityContent.hidden = true;
+    if (els.serendipityEmptyState) els.serendipityEmptyState.hidden = false;
+    currentPickedDashItem = null;
+    return;
+  }
+
+  if (els.serendipityEmptyState) els.serendipityEmptyState.hidden = true;
+  if (els.serendipityContent) els.serendipityContent.hidden = false;
+
+  const needsNewPick = forceNew || !currentPickedDashItem || !inboxItems.some((i) => i.id === currentPickedDashItem.id);
+
+  if (needsNewPick) {
+    let pool = aged30Items.length > 0 ? aged30Items : [...inboxItems].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    if (pool.length > 1 && currentPickedDashItem) {
+      pool = pool.filter((it) => it.id !== currentPickedDashItem.id);
+    }
+    const poolSize = Math.max(1, Math.ceil(pool.length * 0.6));
+    const idx = Math.floor(Math.random() * poolSize);
+    currentPickedDashItem = pool[idx] || pool[0];
+  }
+
+  if (!currentPickedDashItem) {
+    if (els.serendipityContent) els.serendipityContent.hidden = true;
+    if (els.serendipityEmptyState) els.serendipityEmptyState.hidden = false;
+    return;
+  }
+
+  const daysAgo = getDaysAgo(currentPickedDashItem.createdAt);
+  els.serendipityDaysBadge.textContent = daysAgo > 0 ? t("serendipityDaysAgo", [String(daysAgo)]) : t("serendipityToday");
+  els.serendipityMainTitle.textContent = currentPickedDashItem.title || currentPickedDashItem.url;
+  els.serendipityMainTitle.href = currentPickedDashItem.url;
+  els.serendipityUrl.textContent = currentPickedDashItem.url;
+
+  els.serendipityMetaRow.replaceChildren();
+  if (currentPickedDashItem.tags && currentPickedDashItem.tags.length) {
+    for (const tag of currentPickedDashItem.tags) {
+      const tagBadge = document.createElement("span");
+      tagBadge.className = "dash-tag-badge";
+      tagBadge.textContent = `#${tag}`;
+      els.serendipityMetaRow.append(tagBadge);
+    }
+  }
+  if (currentPickedDashItem.note) {
+    const noteSpan = document.createElement("span");
+    noteSpan.className = "muted";
+    noteSpan.textContent = `📝 ${currentPickedDashItem.note}`;
+    els.serendipityMetaRow.append(noteSpan);
+  }
+}
+

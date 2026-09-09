@@ -461,3 +461,160 @@ textarea:focus {
   display: grid;
   grid-template-columns: 1fr auto;
 }
+
+.serendipity-launch-btn {
+  min-height: 34px;
+  width: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--muted);
+  border-radius: 8px;
+  border-color: var(--line);
+  background: var(--panel);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.serendipity-launch-btn:hover {
+  transform: rotate(20deg) scale(1.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--tag-bg);
+}
+
+.serendipity-card {
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--tag-bg), var(--panel));
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.serendipity-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.serendipity-tag-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.serendipity-badge {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.serendipity-age {
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .serendipity-age {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.serendipity-close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 2px 4px;
+  min-height: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.serendipity-close:hover {
+  color: var(--danger);
+}
+
+.serendipity-title {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.serendipity-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.serendipity-meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.serendipity-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.serendipity-btn {
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+
+.serendipity-btn.next-btn {
+  margin-left: auto;
+}
+
+@keyframes serendipityPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(20, 108, 95, 0.5);
+    border-color: var(--accent);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(20, 108, 95, 0);
+    border-color: var(--accent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(20, 108, 95, 0);
+  }
+}
+
+.item.highlight-pulse {
+  animation: serendipityPulse 1.6s ease 2;
+  border-color: var(--accent);
+}

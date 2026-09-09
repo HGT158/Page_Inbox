@@ -29,7 +29,17 @@ const els = {
   batchTagRow: document.querySelector("#batchTagRow"),
   batchTagInput: document.querySelector("#batchTagInput"),
   batchTagApplyButton: document.querySelector("#batchTagApplyButton"),
-  dashboardButton: document.querySelector("#dashboardButton")
+  dashboardButton: document.querySelector("#dashboardButton"),
+  randomPickButton: document.querySelector("#randomPickButton"),
+  serendipityCard: document.querySelector("#serendipityCard"),
+  serendipityAge: document.querySelector("#serendipityAge"),
+  serendipityCloseButton: document.querySelector("#serendipityCloseButton"),
+  serendipityTitle: document.querySelector("#serendipityTitle"),
+  serendipityMeta: document.querySelector("#serendipityMeta"),
+  serendipityReadButton: document.querySelector("#serendipityReadButton"),
+  serendipityOpenButton: document.querySelector("#serendipityOpenButton"),
+  serendipityArchiveButton: document.querySelector("#serendipityArchiveButton"),
+  serendipityNextButton: document.querySelector("#serendipityNextButton")
 };
 
 let items = [];
@@ -38,6 +48,7 @@ let selectionMode = false;
 const selectedIds = new Set();
 let currentTabUrl = "";
 let isDefaultSidePanel = false;
+let currentPickedItem = null;
 
 init();
 
@@ -91,6 +102,46 @@ function bindEvents() {
   });
   if (els.toggleDefaultSidePanelButton) {
     els.toggleDefaultSidePanelButton.addEventListener("click", toggleDefaultMode);
+  }
+  if (els.randomPickButton) {
+    els.randomPickButton.addEventListener("click", pickRandomSerendipityItem);
+  }
+  if (els.serendipityCloseButton) {
+    els.serendipityCloseButton.addEventListener("click", closeSerendipity);
+  }
+  if (els.serendipityNextButton) {
+    els.serendipityNextButton.addEventListener("click", pickRandomSerendipityItem);
+  }
+  if (els.serendipityReadButton) {
+    els.serendipityReadButton.addEventListener("click", () => {
+      if (currentPickedItem) {
+        chrome.tabs.create({ url: chrome.runtime.getURL(`reader.html?id=${currentPickedItem.id}`) });
+      }
+    });
+  }
+  if (els.serendipityOpenButton) {
+    els.serendipityOpenButton.addEventListener("click", openPickedInActiveTab);
+  }
+  if (els.serendipityTitle) {
+    els.serendipityTitle.addEventListener("click", (e) => {
+      e.preventDefault();
+      openPickedInActiveTab();
+    });
+  }
+  if (els.serendipityArchiveButton) {
+    els.serendipityArchiveButton.addEventListener("click", async () => {
+      if (currentPickedItem) {
+        const targetId = currentPickedItem.id;
+        await updateItem(targetId, { status: "done" });
+        showMessage(t("messageMarkDoneSuccess") || "已归档");
+        const nextPending = items.filter((item) => item.status === "inbox" && item.id !== targetId);
+        if (nextPending.length > 0) {
+          pickRandomSerendipityItem();
+        } else {
+          closeSerendipity();
+        }
+      }
+    });
   }
 }
 
@@ -649,3 +700,93 @@ function showMessage(text) {
     els.message.hidden = true;
   }, 2600);
 }
+
+async function openPickedInActiveTab() {
+  if (!currentPickedItem) {
+    return;
+  }
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.update(tab.id, { url: currentPickedItem.url });
+      currentTabUrl = currentPickedItem.url;
+      render();
+    } else {
+      chrome.tabs.create({ url: currentPickedItem.url });
+    }
+  } catch {
+    chrome.tabs.create({ url: currentPickedItem.url });
+  }
+}
+
+function pickRandomSerendipityItem() {
+  const pendingItems = items.filter((item) => item.status === "inbox");
+  if (pendingItems.length === 0) {
+    showMessage(t("serendipityEmpty"));
+    closeSerendipity();
+    return;
+  }
+
+  // 避免连续抽中同一条（若大于1条）
+  const candidates = pendingItems.length > 1 && currentPickedItem
+    ? pendingItems.filter((item) => item.id !== currentPickedItem.id)
+    : pendingItems;
+
+  // 防积压核心策略：按创建时间由旧到新排序，沉睡越久的旧藏赋予更高权重
+  candidates.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  // 优先从最久远的 60% 条目池中抽选
+  const poolSize = Math.max(1, Math.ceil(candidates.length * 0.6));
+  const randomIndex = Math.floor(Math.random() * poolSize);
+  const picked = candidates[randomIndex] || candidates[0];
+
+  showSerendipityCard(picked);
+}
+
+function showSerendipityCard(item) {
+  if (!item || !els.serendipityCard) {
+    return;
+  }
+  currentPickedItem = item;
+
+  const daysAgo = getDaysAgo(item.createdAt);
+  els.serendipityAge.textContent = daysAgo > 0 ? t("serendipityDaysAgo", [String(daysAgo)]) : t("serendipityToday");
+  els.serendipityTitle.textContent = item.title || item.url;
+  els.serendipityTitle.href = item.url;
+
+  const tagsStr = item.tags.length > 0 ? item.tags.map((tg) => `#${tg}`).join(" ") : "";
+  let host = "";
+  try {
+    host = new URL(item.url).hostname;
+  } catch {
+    host = "";
+  }
+  els.serendipityMeta.textContent = [host, tagsStr, item.note].filter(Boolean).join(" · ");
+
+  els.serendipityCard.hidden = false;
+  highlightItemInList(item.id);
+}
+
+function closeSerendipity() {
+  if (els.serendipityCard) {
+    els.serendipityCard.hidden = true;
+  }
+  currentPickedItem = null;
+}
+
+function highlightItemInList(itemId) {
+  if (!els.list) {
+    return;
+  }
+  const domItem = els.list.querySelector(`[data-id="${itemId}"]`);
+  if (domItem) {
+    domItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    domItem.classList.remove("highlight-pulse");
+    void domItem.offsetWidth;
+    domItem.classList.add("highlight-pulse");
+    setTimeout(() => {
+      domItem.classList.remove("highlight-pulse");
+    }, 3200);
+  }
+}
+

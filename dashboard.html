@@ -50,6 +50,38 @@
         </div>
       </section>
 
+      <section id="serendipityCard" class="card serendipity-dash-card" data-i18n-aria-label="serendipityCardTitle">
+        <div class="card-head-row">
+          <div>
+            <h2 data-i18n="serendipityCardTitle"></h2>
+            <p class="muted" data-i18n="serendipityCardDesc"></p>
+          </div>
+          <div class="serendipity-stats-pill">
+            <span id="backlogCountText"></span>
+          </div>
+        </div>
+
+        <div id="serendipityEmptyState" class="serendipity-empty" hidden>
+          <p class="muted" data-i18n="serendipityEmpty"></p>
+        </div>
+
+        <div id="serendipityContent" class="serendipity-box">
+          <div class="serendipity-box-header">
+            <span class="serendipity-tag-label">🎲 <span data-i18n="serendipityBadge"></span></span>
+            <span id="serendipityDaysBadge" class="serendipity-age-badge"></span>
+          </div>
+          <a id="serendipityMainTitle" class="serendipity-main-title" href="#" target="_blank" rel="noreferrer"></a>
+          <p id="serendipityUrl" class="serendipity-item-url"></p>
+          <div id="serendipityMetaRow" class="serendipity-meta-row"></div>
+          <div class="row serendipity-btn-group">
+            <button id="dashSerendipityReadBtn" type="button" class="primary" data-i18n="serendipityReader"></button>
+            <button id="dashSerendipityOpenBtn" type="button" data-i18n="serendipityOpen"></button>
+            <button id="dashSerendipityDoneBtn" type="button" data-i18n="serendipityArchive"></button>
+            <button id="dashSerendipityNextBtn" type="button" class="serendipity-next-btn">🎲 <span data-i18n="serendipityPickAnother"></span></button>
+          </div>
+        </div>
+      </section>
+
       <section class="card" data-i18n-aria-label="readerCardTitle">
         <h2 data-i18n="readerCardTitle"></h2>
         <p class="muted" data-i18n="readerCardDesc"></p>

@@ -640,5 +640,55 @@
   },
   "openInNewTab": {
     "message": "Open in new tab"
+  },
+  "randomPickButton": {
+    "message": "Serendipity Pick (Random Review)"
+  },
+  "randomPickShort": {
+    "message": "Random Pick"
+  },
+  "serendipityBadge": {
+    "message": "Serendipity"
+  },
+  "serendipityDaysAgo": {
+    "message": "Dormant for $DAYS$ days",
+    "placeholders": {
+      "days": {
+        "content": "$1"
+      }
+    }
+  },
+  "serendipityToday": {
+    "message": "Saved today"
+  },
+  "serendipityEmpty": {
+    "message": "No pending inbox backlog. Great job keeping it clear! 🎉"
+  },
+  "serendipityPickAnother": {
+    "message": "Another"
+  },
+  "serendipityReader": {
+    "message": "Read"
+  },
+  "serendipityOpen": {
+    "message": "Open"
+  },
+  "serendipityArchive": {
+    "message": "Done"
+  },
+  "serendipityClose": {
+    "message": "Dismiss"
+  },
+  "serendipityCardTitle": {
+    "message": "Serendipity & Aged Gems"
+  },
+  "serendipityCardDesc": {
+    "message": "Surface forgotten gems and tackle backlog from the depths of your inbox"
+  },
+  "serendipityBacklogStat": {
+    "message": "Over 30 days pending"
+  },
+  "serendipityBacklogRatio": {
+    "message": "Long-term ratio"
   }
 }

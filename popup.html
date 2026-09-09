@@ -14,6 +14,7 @@
           <p id="countText"></p>
         </div>
         <div class="topbar-actions">
+          <button id="randomPickButton" class="serendipity-launch-btn" type="button" data-i18n-aria-label="randomPickButton" title="随手读一篇 (随机回顾)">🎲</button>
           <button id="openSidePanelButton" class="sidepanel-launch-btn" type="button" data-i18n-aria-label="openSidePanelTitle" title="在浏览器侧边栏打开">◨ <span data-i18n="openSidePanelButton"></span></button>
           <button id="saveCurrentButton" class="primary" type="button" data-i18n="saveCurrentButton"></button>
         </div>
@@ -34,6 +35,26 @@
       </section>
 
       <section id="tagFilters" class="tag-filters" data-i18n-aria-label="tagFilterLabel"></section>
+
+      <section id="serendipityCard" class="serendipity-card" hidden data-i18n-aria-label="serendipityCardTitle">
+        <div class="serendipity-head">
+          <div class="serendipity-tag-wrap">
+            <span class="serendipity-badge">🎲 <span data-i18n="serendipityBadge"></span></span>
+            <span id="serendipityAge" class="serendipity-age"></span>
+          </div>
+          <button id="serendipityCloseButton" class="serendipity-close" type="button" data-i18n-aria-label="serendipityClose" title="收起">✕</button>
+        </div>
+        <div class="serendipity-content">
+          <a id="serendipityTitle" class="serendipity-title" href="#" target="_blank" rel="noreferrer"></a>
+          <p id="serendipityMeta" class="serendipity-meta"></p>
+        </div>
+        <div class="serendipity-actions">
+          <button id="serendipityReadButton" class="primary serendipity-btn" type="button" data-i18n="serendipityReader"></button>
+          <button id="serendipityOpenButton" class="serendipity-btn" type="button" data-i18n="serendipityOpen"></button>
+          <button id="serendipityArchiveButton" class="serendipity-btn" type="button" data-i18n="serendipityArchive"></button>
+          <button id="serendipityNextButton" class="serendipity-btn next-btn" type="button">🎲 <span data-i18n="serendipityPickAnother"></span></button>
+        </div>
+      </section>
 
       <section id="batchBar" class="batch-bar" hidden data-i18n-aria-label="batchBarLabel">
         <div class="batch-row">

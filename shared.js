@@ -98,3 +98,10 @@ function downloadText(text, filename, type) {
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
+
+function getDaysAgo(dateStr) {
+  if (!dateStr) return 0;
+  const time = new Date(dateStr).getTime();
+  if (Number.isNaN(time)) return 0;
+  return Math.max(0, Math.floor((Date.now() - time) / (1000 * 60 * 60 * 24)));
+}

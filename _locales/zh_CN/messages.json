@@ -640,5 +640,55 @@
   },
   "openInNewTab": {
     "message": "新标签打开"
+  },
+  "randomPickButton": {
+    "message": "随手读一篇 (随机回顾)"
+  },
+  "randomPickShort": {
+    "message": "随手读"
+  },
+  "serendipityBadge": {
+    "message": "灵感回顾"
+  },
+  "serendipityDaysAgo": {
+    "message": "已沉睡 $DAYS$ 天",
+    "placeholders": {
+      "days": {
+        "content": "$1"
+      }
+    }
+  },
+  "serendipityToday": {
+    "message": "今天收藏"
+  },
+  "serendipityEmpty": {
+    "message": "收集箱没有待读积压，保持得非常棒！🎉"
+  },
+  "serendipityPickAnother": {
+    "message": "换一篇"
+  },
+  "serendipityReader": {
+    "message": "纯净阅读"
+  },
+  "serendipityOpen": {
+    "message": "立即查阅"
+  },
+  "serendipityArchive": {
+    "message": "归档"
+  },
+  "serendipityClose": {
+    "message": "收起"
+  },
+  "serendipityCardTitle": {
+    "message": "陈年旧藏与灵感回顾"
+  },
+  "serendipityCardDesc": {
+    "message": "盘活沉睡在收集箱深处的旧网页，打破“只存不看”的积压死循环"
+  },
+  "serendipityBacklogStat": {
+    "message": "超 30 天未读"
+  },
+  "serendipityBacklogRatio": {
+    "message": "长期待读占比"
   }
 }
