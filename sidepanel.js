@@ -574,12 +574,12 @@ function updateBatchBar() {
 
   els.batchBar.hidden = false;
   const count = selectedIds.size;
-  els.selectionCount.textContent = t("selectedCount", String(count));
+  els.selectionCount.textContent = t("selectionCount", String(count));
 
   const visible = getFilteredItems();
   const visibleIds = visible.map((item) => item.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
-  els.selectAllButton.textContent = allVisibleSelected ? t("unselectAllButton") : t("selectAllButton");
+  els.selectAllButton.textContent = allVisibleSelected ? t("deselectAllButton") : t("selectAllButton");
 
   const hasSelection = count > 0;
   els.batchTagButton.disabled = !hasSelection;
@@ -671,7 +671,7 @@ async function clearDoneItems() {
   items = items.filter((item) => item.status !== "done");
   await persistItems();
   render();
-  showMessage(t("messageClearedDone"));
+  showMessage(t("messageClearedDone", String(doneCount)));
 }
 
 function exportJson() {

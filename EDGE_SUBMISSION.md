@@ -1,6 +1,6 @@
 # Microsoft Edge Add-ons submission notes
 
-Extension: **Page Inbox (网页稍后处理)** · Manifest V3 · Version 0.12.0
+Extension: **Page Inbox (网页稍后处理)** · Manifest V3 · Version 0.13.0
 
 ## Single purpose
 
@@ -16,6 +16,7 @@ The single purpose can be stated as: **save, organize, and reuse a personal list
 - Context menu: save the current page or a link; open Page Inbox in side panel.
 - Side Panel (`sidepanel.html`): open Page Inbox in the browser side panel for persistent side-by-side reading and organization.
 - Pure Reader Mode (`reader.html`): minimalist typography, 4 themes, font scaling, distraction-free article reading.
+- Anti-backlog Serendipity: "Random Pick" dice button in popup and side panel to revisit dormant saved pages with "dormant for N days" badge and direct reader/open/archive actions; dedicated "Aged Gems & Serendipity" card in More tools page with >30 days backlog ratio.
 - "More tools" page (`dashboard.html`): usage statistics, JSON import, CSV and Netscape HTML bookmark export, copy-all as Markdown.
 - "AI analysis" page (`ai.html`), fully opt-in: pick saved pages from a list and chat about them. Works with (a) the browser's built-in on-device model (Chrome Prompt API) when available, or (b) an OpenAI-compatible endpoint the user configures themselves (endpoint URL + API key stored locally). To ground the answers, the extension can extract text from the selected pages: direct HTTP fetch first, or — only with per-site permission — a temporary background tab that reads the rendered page and is closed immediately.
 
@@ -69,6 +70,7 @@ No remote code is loaded or executed. All JavaScript, HTML, CSS, and localizatio
 
 ## Version history
 
+- 0.13.0 — Added Pure Reader Mode (`reader.html`) with distraction-free layout, 4 color themes, font scaling, drawer switching, and read time estimation; added native browser Side Panel (`sidepanel.html`) with Alt+B shortcut, in-place active tab navigation, and default icon action toggle; added anti-backlog Serendipity ("random pick" & aged gems review) across popup, side panel, and dashboard.
 - 0.12.0 — Added Alt+S global keyboard shortcut for instant page saving; added dynamic toolbar action badge for pending inbox count and saved-page checkmark (`✓`) indicator; unified URL priority and added `tabs` permission for real-time badge state; added visual saved page highlighting in popup.
 - 0.11.0 — Added local Mermaid diagram rendering (flowcharts, sequence diagrams) in AI replies, with Mermaid's strict security level for generated SVG and automatic fallback to a code block when diagram syntax is invalid; improved AI chat history management.
 - 0.10.0 — AI chat history persistence (local, deletable), Markdown rendering for AI replies, tab-based content fallback, batch management, pinning, import, statistics, multi-format export.

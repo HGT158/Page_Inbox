@@ -608,6 +608,24 @@
   "readerSearchPlaceholder": {
     "message": "搜索文章标题或链接"
   },
+  "readerFontFamilyLabel": {
+    "message": "字体风格"
+  },
+  "readerFontSizeLabel": {
+    "message": "字号大小"
+  },
+  "readerFontDecrease": {
+    "message": "缩小字号"
+  },
+  "readerFontIncrease": {
+    "message": "放大字号"
+  },
+  "readerWidthLabel": {
+    "message": "阅读宽度"
+  },
+  "readerThemeLabel": {
+    "message": "阅读主题"
+  },
   "dashArticlesTitle": {
     "message": "稍后阅读文章"
   },
@@ -690,5 +708,19 @@
   },
   "serendipityBacklogRatio": {
     "message": "长期待读占比"
+  },
+  "messageMarkDoneSuccess": {
+    "message": "已标记完成。"
+  },
+  "messageDeletedLink": {
+    "message": "已删除该项目。"
+  },
+  "confirmClearDone": {
+    "message": "确定清理 $COUNT$ 个已处理项目？",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

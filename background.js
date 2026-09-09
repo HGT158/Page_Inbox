@@ -1,5 +1,6 @@
 importScripts("shared.js");
 
+const flashTimers = new Map();
 const SIDE_PANEL_PREF_KEY = "laterbox.openInSidePanel";
 
 chrome.runtime.onInstalled.addListener(() => {

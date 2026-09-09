@@ -314,6 +314,7 @@ function renderItem(item) {
   const url = fragment.querySelector(".item-url");
   const description = fragment.querySelector(".item-description");
   const tags = fragment.querySelector(".item-tags");
+  const note = fragment.querySelector(".item-note");
   const readerButton = fragment.querySelector(".reader-button");
   const statusButton = fragment.querySelector(".status-button");
   const markdownButton = fragment.querySelector(".markdown-button");

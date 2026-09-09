@@ -608,6 +608,24 @@
   "readerSearchPlaceholder": {
     "message": "Search title or URL"
   },
+  "readerFontFamilyLabel": {
+    "message": "Font family"
+  },
+  "readerFontSizeLabel": {
+    "message": "Font size"
+  },
+  "readerFontDecrease": {
+    "message": "Decrease font size"
+  },
+  "readerFontIncrease": {
+    "message": "Increase font size"
+  },
+  "readerWidthLabel": {
+    "message": "Reading width"
+  },
+  "readerThemeLabel": {
+    "message": "Reading theme"
+  },
   "dashArticlesTitle": {
     "message": "Saved Articles"
   },
@@ -690,5 +708,19 @@
   },
   "serendipityBacklogRatio": {
     "message": "Long-term ratio"
+  },
+  "messageMarkDoneSuccess": {
+    "message": "Marked as done."
+  },
+  "messageDeletedLink": {
+    "message": "Item deleted."
+  },
+  "confirmClearDone": {
+    "message": "Clear $COUNT$ done items?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
   }
 }

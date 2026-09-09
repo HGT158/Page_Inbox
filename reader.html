@@ -9,46 +9,46 @@
   <body class="theme-light font-sans width-normal">
     <header class="reader-toolbar">
       <div class="toolbar-left">
-        <a id="backButton" class="toolbar-btn text-btn" href="dashboard.html" data-i18n-aria-label="readerBackToDashboard" title="返回更多功能">
+        <a id="backButton" class="toolbar-btn text-btn" href="dashboard.html" data-i18n-aria-label="readerBackToDashboard" data-i18n-title="readerBackToDashboard" title="返回更多功能">
           ← <span data-i18n="readerBackToDashboard"></span>
         </a>
         <button id="drawerToggle" class="toolbar-btn" type="button" data-i18n-aria-label="readerDrawerTitle">
           📑 <span data-i18n="readerDrawerTitle"></span>
         </button>
         <span class="toolbar-divider"></span>
-        <a id="sourceSiteLink" class="source-link" target="_blank" rel="noreferrer" title="打开原网页">
+        <a id="sourceSiteLink" class="source-link" target="_blank" rel="noreferrer" data-i18n-title="readerOpenOriginal" title="打开原网页">
           <span id="sourceSiteText"></span> ↗
         </a>
       </div>
 
       <div class="toolbar-right">
         <!-- 字体选择 -->
-        <select id="fontFamilySelect" class="toolbar-select" aria-label="字体风格">
+        <select id="fontFamilySelect" class="toolbar-select" data-i18n-aria-label="readerFontFamilyLabel" aria-label="字体风格">
           <option value="sans" data-i18n="readerFontSans"></option>
           <option value="serif" data-i18n="readerFontSerif"></option>
           <option value="mono" data-i18n="readerFontMono"></option>
         </select>
 
         <!-- 字号调节 -->
-        <div class="font-size-stepper" role="group" aria-label="字号大小">
-          <button id="fontDecBtn" class="toolbar-btn stepper-btn" type="button" title="缩小字号">A-</button>
+        <div class="font-size-stepper" role="group" data-i18n-aria-label="readerFontSizeLabel" aria-label="字号大小">
+          <button id="fontDecBtn" class="toolbar-btn stepper-btn" type="button" data-i18n-title="readerFontDecrease" title="缩小字号">A-</button>
           <span id="fontSizeDisplay" class="font-size-text">18px</span>
-          <button id="fontIncBtn" class="toolbar-btn stepper-btn" type="button" title="放大字号">A+</button>
+          <button id="fontIncBtn" class="toolbar-btn stepper-btn" type="button" data-i18n-title="readerFontIncrease" title="放大字号">A+</button>
         </div>
 
         <!-- 页面宽度 -->
-        <select id="contentWidthSelect" class="toolbar-select" aria-label="阅读宽度">
+        <select id="contentWidthSelect" class="toolbar-select" data-i18n-aria-label="readerWidthLabel" aria-label="阅读宽度">
           <option value="compact" data-i18n="readerWidthCompact"></option>
           <option value="normal" data-i18n="readerWidthNormal"></option>
           <option value="wide" data-i18n="readerWidthWide"></option>
         </select>
 
         <!-- 主题切换 -->
-        <div class="theme-picker" role="radiogroup" aria-label="阅读主题">
-          <button class="theme-btn theme-btn-light active" type="button" data-theme="light" data-i18n="readerThemeLight" title="浅色明亮"></button>
-          <button class="theme-btn theme-btn-sepia" type="button" data-theme="sepia" data-i18n="readerThemeSepia" title="羊皮纸护眼"></button>
-          <button class="theme-btn theme-btn-dark" type="button" data-theme="dark" data-i18n="readerThemeDark" title="暗黑模式"></button>
-          <button class="theme-btn theme-btn-black" type="button" data-theme="black" data-i18n="readerThemeBlack" title="极黑夜间"></button>
+        <div class="theme-picker" role="radiogroup" data-i18n-aria-label="readerThemeLabel" aria-label="阅读主题">
+          <button class="theme-btn theme-btn-light active" type="button" data-theme="light" data-i18n="readerThemeLight" data-i18n-title="readerThemeLight" title="浅色明亮"></button>
+          <button class="theme-btn theme-btn-sepia" type="button" data-theme="sepia" data-i18n="readerThemeSepia" data-i18n-title="readerThemeSepia" title="羊皮纸护眼"></button>
+          <button class="theme-btn theme-btn-dark" type="button" data-theme="dark" data-i18n="readerThemeDark" data-i18n-title="readerThemeDark" title="暗黑模式"></button>
+          <button class="theme-btn theme-btn-black" type="button" data-theme="black" data-i18n="readerThemeBlack" data-i18n-title="readerThemeBlack" title="极黑夜间"></button>
         </div>
 
         <span class="toolbar-divider"></span>
