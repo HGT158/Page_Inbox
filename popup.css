@@ -249,6 +249,22 @@ textarea:focus {
   padding: 12px;
 }
 
+.item.current-page {
+  border-color: var(--accent);
+  border-left-width: 4px;
+}
+
+#saveCurrentButton.is-saved {
+  background: var(--tag-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#saveCurrentButton.is-saved:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 .item-head {
   display: grid;
   grid-template-columns: 1fr auto;

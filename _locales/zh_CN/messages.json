@@ -21,6 +21,42 @@
   "saveCurrentButton": {
     "message": "保存当前页"
   },
+  "saveCurrentButtonSaved": {
+    "message": "已在收集箱 (点击更新)"
+  },
+  "commandSaveCurrentPage": {
+    "message": "保存当前网页至稍后处理"
+  },
+  "actionTitleSaved": {
+    "message": "$NAME$ (当前页面已保存 · $COUNT$ 个待处理)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "actionTitleSavedNoInbox": {
+    "message": "$NAME$ (当前页面已保存)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "actionTitleNormal": {
+    "message": "$NAME$ ($COUNT$ 个待处理)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
   "manualAddLabel": {
     "message": "手动添加"
   },

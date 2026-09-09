@@ -21,6 +21,42 @@
   "saveCurrentButton": {
     "message": "Save current page"
   },
+  "saveCurrentButtonSaved": {
+    "message": "Saved (Click to update)"
+  },
+  "commandSaveCurrentPage": {
+    "message": "Save current page to Page Inbox"
+  },
+  "actionTitleSaved": {
+    "message": "$NAME$ (Page saved · $COUNT$ pending)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "actionTitleSavedNoInbox": {
+    "message": "$NAME$ (Page saved)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "actionTitleNormal": {
+    "message": "$NAME$ ($COUNT$ pending)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
   "manualAddLabel": {
     "message": "Manual add"
   },

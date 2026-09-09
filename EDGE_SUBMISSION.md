@@ -1,6 +1,6 @@
 # Microsoft Edge Add-ons submission notes
 
-Extension: **Page Inbox (网页稍后处理)** · Manifest V3 · Version 0.10.0
+Extension: **Page Inbox (网页稍后处理)** · Manifest V3 · Version 0.12.0
 
 ## Single purpose
 
@@ -10,7 +10,9 @@ The single purpose can be stated as: **save, organize, and reuse a personal list
 
 ## Features overview (for reviewers)
 
-- Popup: save current page, paste a URL, tags, notes, pin, batch operations (batch tag / mark done / delete), search and filters, copy Markdown, export JSON/Markdown.
+- Popup: save current page, paste a URL, tags, notes, pin, batch operations (batch tag / mark done / delete), search and filters, copy Markdown, export JSON/Markdown, saved page indicator.
+- Shortcut: Alt+S global shortcut to save the active page with instantaneous badge feedback.
+- Dynamic badge: displays pending inbox count and highlights a checkmark when viewing an already saved page.
 - Context menu: save the current page or a link.
 - "More tools" page (`dashboard.html`): usage statistics, JSON import, CSV and Netscape HTML bookmark export, copy-all as Markdown.
 - "AI analysis" page (`ai.html`), fully opt-in: pick saved pages from a list and chat about them. Works with (a) the browser's built-in on-device model (Chrome Prompt API) when available, or (b) an OpenAI-compatible endpoint the user configures themselves (endpoint URL + API key stored locally). To ground the answers, the extension can extract text from the selected pages: direct HTTP fetch first, or — only with per-site permission — a temporary background tab that reads the rendered page and is closed immediately.
@@ -19,10 +21,11 @@ The single purpose can be stated as: **save, organize, and reuse a personal list
 
 Required permissions:
 
-- `activeTab`: Reads the currently active tab only after the user clicks the popup save button or the context menu command.
+- `activeTab`: Grants temporary access to the currently active tab only after an explicit user gesture — clicking the popup save button, using the context menu entry, or pressing the Alt+S keyboard shortcut. It is used to run the metadata-extraction script on that one tab; the URL and title shown on the badge are read via `tabs` below.
 - `contextMenus`: Adds page and link context menu entries so the user can save pages or links.
 - `scripting`: (1) Runs a small user-triggered script in the active tab to read the page title and description metadata when saving. (2) On the optional AI page, runs a text-extraction script inside a temporary background tab of a page the user explicitly asked to analyze — only for sites the user has granted access to.
 - `storage`: Stores the saved page list, tags, notes, status, AI settings, and AI chat history locally in `chrome.storage.local`.
+- `tabs`: Reads the active tab's URL and title in the background to dynamically display the pending inbox count and the saved checkmark (`✓`) indicator on the extension action badge when viewing an already saved page. Triggers the standard browser install warning for reading browsing history; all tab data is processed entirely locally and never persisted or transmitted.
 
 Optional host permissions (requested at runtime, per origin, never granted at install):
 
@@ -63,5 +66,7 @@ No remote code is loaded or executed. All JavaScript, HTML, CSS, and localizatio
 
 ## Version history
 
+- 0.12.0 — Added Alt+S global keyboard shortcut for instant page saving; added dynamic toolbar action badge for pending inbox count and saved-page checkmark (`✓`) indicator; unified URL priority and added `tabs` permission for real-time badge state; added visual saved page highlighting in popup.
+- 0.11.0 — Added local Mermaid diagram rendering (flowcharts, sequence diagrams) in AI replies, with Mermaid's strict security level for generated SVG and automatic fallback to a code block when diagram syntax is invalid; improved AI chat history management.
 - 0.10.0 — AI chat history persistence (local, deletable), Markdown rendering for AI replies, tab-based content fallback, batch management, pinning, import, statistics, multi-format export.
 - 0.3.0 — Initial listing draft: popup/context-menu save, tags and notes, search, export.

@@ -30,14 +30,25 @@ let items = [];
 let activeTag = "";
 let selectionMode = false;
 const selectedIds = new Set();
+let currentTabUrl = "";
 
 init();
 
 async function init() {
   localizeDocument();
+  await loadCurrentTabUrl();
   await loadItems();
   bindEvents();
   render();
+}
+
+async function loadCurrentTabUrl() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTabUrl = tab?.url || "";
+  } catch {
+    currentTabUrl = "";
+  }
 }
 
 function bindEvents() {
@@ -94,9 +105,11 @@ async function saveCurrentTab() {
     }
 
     const meta = await readPageMeta(tab.id);
+    const targetUrl = meta.url || tab.url;
+    currentTabUrl = targetUrl;
     await upsertItem({
-      title: meta.title || tab.title || tab.url,
-      url: meta.url || tab.url,
+      title: meta.title || tab.title || targetUrl,
+      url: targetUrl,
       description: meta.description || "",
       source: "popup"
     });
@@ -163,6 +176,16 @@ function render() {
   items = items.map(normalizeItem);
   els.list.classList.toggle("selecting", selectionMode);
   updateBatchBar();
+  const stripHash = (u) => (u ? u.split("#")[0] : u);
+  const isCurrentSaved = Boolean(currentTabUrl && items.some((item) => stripHash(item.url) === stripHash(currentTabUrl)));
+  if (isCurrentSaved) {
+    els.saveCurrentButton.textContent = t("saveCurrentButtonSaved");
+    els.saveCurrentButton.classList.add("is-saved");
+  } else {
+    els.saveCurrentButton.textContent = t("saveCurrentButton");
+    els.saveCurrentButton.classList.remove("is-saved");
+  }
+
   const filteredItems = getFilteredItems()
     .sort((a, b) => Number(b.pinned) - Number(a.pinned));
   const inboxCount = items.filter((item) => item.status !== "done").length;
@@ -235,6 +258,10 @@ function renderItem(item) {
 
   article.dataset.id = item.id;
   article.dataset.pinned = String(Boolean(item.pinned));
+  const stripHash = (u) => (u ? u.split("#")[0] : u);
+  if (currentTabUrl && stripHash(item.url) === stripHash(currentTabUrl)) {
+    article.classList.add("current-page");
+  }
   title.textContent = item.title || item.url;
   title.href = item.url;
   url.textContent = item.url;
