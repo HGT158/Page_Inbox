@@ -1,6 +1,6 @@
 importScripts("shared.js");
 
-const flashTimers = new Map();
+const SIDE_PANEL_PREF_KEY = "laterbox.openInSidePanel";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -15,14 +15,29 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ["link"]
   });
 
+  chrome.contextMenus.create({
+    id: "open-sidepanel",
+    title: t("contextMenuOpenSidePanel"),
+    contexts: ["page", "action"]
+  });
+
+  syncPanelBehavior();
   updateAllBadges();
 });
 
 chrome.runtime.onStartup.addListener(() => {
+  syncPanelBehavior();
   updateAllBadges();
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === "open-sidepanel") {
+    if (tab?.windowId && chrome.sidePanel?.open) {
+      chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => {});
+    }
+    return;
+  }
+
   if (info.menuItemId !== "save-page" && info.menuItemId !== "save-link") {
     return;
   }
@@ -47,19 +62,44 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// 全局快捷键监听 (默认 Alt+S)
+// 全局快捷键监听 (默认 Alt+S 保存，Alt+B 打开侧边栏)
 chrome.commands.onCommand.addListener(async (command) => {
   if (command === "save-current-page") {
     await handleSaveCurrentCommand();
+  } else if (command === "open-sidepanel") {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.windowId && chrome.sidePanel?.open) {
+      chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => {});
+    }
   }
 });
 
-// 监听存储变化（在 popup、dashboard 等任何地方修改均可同步触发）
+// 监听存储变化（在 popup、sidepanel、dashboard 等任何地方修改均可同步触发）
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && changes[ITEMS_KEY]) {
-    updateAllBadges();
+  if (area === "local") {
+    if (changes[ITEMS_KEY]) {
+      updateAllBadges();
+    }
+    if (changes[SIDE_PANEL_PREF_KEY]) {
+      syncPanelBehavior();
+    }
   }
 });
+
+async function syncPanelBehavior() {
+  try {
+    const result = await chrome.storage.local.get({ [SIDE_PANEL_PREF_KEY]: false });
+    const openInSidePanel = Boolean(result[SIDE_PANEL_PREF_KEY]);
+    if (chrome.sidePanel?.setPanelBehavior) {
+      await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: openInSidePanel });
+    }
+    if (chrome.action?.setPopup) {
+      await chrome.action.setPopup({ popup: openInSidePanel ? "" : "popup.html" });
+    }
+  } catch {
+    // 忽略特定平台暂不支持异常
+  }
+}
 
 // 监听标签页激活与切换
 chrome.tabs.onActivated.addListener((activeInfo) => {

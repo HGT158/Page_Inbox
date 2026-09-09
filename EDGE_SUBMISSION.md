@@ -11,9 +11,11 @@ The single purpose can be stated as: **save, organize, and reuse a personal list
 ## Features overview (for reviewers)
 
 - Popup: save current page, paste a URL, tags, notes, pin, batch operations (batch tag / mark done / delete), search and filters, copy Markdown, export JSON/Markdown, saved page indicator.
-- Shortcut: Alt+S global shortcut to save the active page with instantaneous badge feedback.
+- Shortcuts: Alt+S global shortcut to save the active page with instantaneous badge feedback; Alt+B shortcut to open Page Inbox in the side panel.
 - Dynamic badge: displays pending inbox count and highlights a checkmark when viewing an already saved page.
-- Context menu: save the current page or a link.
+- Context menu: save the current page or a link; open Page Inbox in side panel.
+- Side Panel (`sidepanel.html`): open Page Inbox in the browser side panel for persistent side-by-side reading and organization.
+- Pure Reader Mode (`reader.html`): minimalist typography, 4 themes, font scaling, distraction-free article reading.
 - "More tools" page (`dashboard.html`): usage statistics, JSON import, CSV and Netscape HTML bookmark export, copy-all as Markdown.
 - "AI analysis" page (`ai.html`), fully opt-in: pick saved pages from a list and chat about them. Works with (a) the browser's built-in on-device model (Chrome Prompt API) when available, or (b) an OpenAI-compatible endpoint the user configures themselves (endpoint URL + API key stored locally). To ground the answers, the extension can extract text from the selected pages: direct HTTP fetch first, or — only with per-site permission — a temporary background tab that reads the rendered page and is closed immediately.
 
@@ -24,6 +26,7 @@ Required permissions:
 - `activeTab`: Grants temporary access to the currently active tab only after an explicit user gesture — clicking the popup save button, using the context menu entry, or pressing the Alt+S keyboard shortcut. It is used to run the metadata-extraction script on that one tab; the URL and title shown on the badge are read via `tabs` below.
 - `contextMenus`: Adds page and link context menu entries so the user can save pages or links.
 - `scripting`: (1) Runs a small user-triggered script in the active tab to read the page title and description metadata when saving. (2) On the optional AI page, runs a text-extraction script inside a temporary background tab of a page the user explicitly asked to analyze — only for sites the user has granted access to.
+- `sidePanel`: Allows displaying Page Inbox in the browser's side panel so users can organize and review saved pages side-by-side with web content without the popup automatically closing on clicks outside.
 - `storage`: Stores the saved page list, tags, notes, status, AI settings, and AI chat history locally in `chrome.storage.local`.
 - `tabs`: Reads the active tab's URL and title in the background to dynamically display the pending inbox count and the saved checkmark (`✓`) indicator on the extension action badge when viewing an already saved page. Triggers the standard browser install warning for reading browsing history; all tab data is processed entirely locally and never persisted or transmitted.
 

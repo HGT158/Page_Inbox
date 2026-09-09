@@ -1,7 +1,12 @@
+// sidepanel.js - 侧边栏模式交互逻辑
+// 长驻侧边栏，支持与主浏览器窗口活动标签页的实时双向联动
+
+const SIDE_PANEL_PREF_KEY = "laterbox.openInSidePanel";
+
 const els = {
   countText: document.querySelector("#countText"),
   saveCurrentButton: document.querySelector("#saveCurrentButton"),
-  openSidePanelButton: document.querySelector("#openSidePanelButton"),
+  toggleDefaultSidePanelButton: document.querySelector("#toggleDefaultSidePanelButton"),
   manualUrlInput: document.querySelector("#manualUrlInput"),
   manualAddButton: document.querySelector("#manualAddButton"),
   searchInput: document.querySelector("#searchInput"),
@@ -32,14 +37,18 @@ let activeTag = "";
 let selectionMode = false;
 const selectedIds = new Set();
 let currentTabUrl = "";
+let isDefaultSidePanel = false;
 
 init();
 
 async function init() {
   localizeDocument();
+  document.title = `${t("extensionName")} · ${t("openSidePanelButton")}`;
   await loadCurrentTabUrl();
+  await loadDefaultMode();
   await loadItems();
   bindEvents();
+  bindTabListeners();
   render();
 }
 
@@ -80,19 +89,70 @@ function bindEvents() {
   els.dashboardButton.addEventListener("click", () => {
     chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
   });
-  if (els.openSidePanelButton) {
-    els.openSidePanelButton.addEventListener("click", async () => {
-      try {
-        if (chrome.sidePanel?.open) {
-          const currentWindow = await chrome.windows.getCurrent();
-          await chrome.sidePanel.open({ windowId: currentWindow.id });
-          window.close();
-        }
-      } catch (err) {
-        console.warn("Could not open sidePanel:", err);
-      }
-    });
+  if (els.toggleDefaultSidePanelButton) {
+    els.toggleDefaultSidePanelButton.addEventListener("click", toggleDefaultMode);
   }
+}
+
+async function loadDefaultMode() {
+  try {
+    const result = await chrome.storage.local.get({ [SIDE_PANEL_PREF_KEY]: false });
+    isDefaultSidePanel = Boolean(result[SIDE_PANEL_PREF_KEY]);
+    updateDefaultModeUI();
+  } catch {
+    isDefaultSidePanel = false;
+  }
+}
+
+function updateDefaultModeUI() {
+  if (!els.toggleDefaultSidePanelButton) {
+    return;
+  }
+  els.toggleDefaultSidePanelButton.dataset.active = String(isDefaultSidePanel);
+  if (isDefaultSidePanel) {
+    els.toggleDefaultSidePanelButton.textContent = `◨ ${t("switchToPopupButton")}`;
+    els.toggleDefaultSidePanelButton.title = t("switchToPopupButton");
+  } else {
+    els.toggleDefaultSidePanelButton.textContent = `◨ ${t("toggleDefaultSidePanel")}`;
+    els.toggleDefaultSidePanelButton.title = t("toggleDefaultSidePanel");
+  }
+}
+
+async function toggleDefaultMode() {
+  isDefaultSidePanel = !isDefaultSidePanel;
+  updateDefaultModeUI();
+  await chrome.storage.local.set({ [SIDE_PANEL_PREF_KEY]: isDefaultSidePanel });
+  showMessage(isDefaultSidePanel ? t("toggleDefaultSidePanel") : t("switchToPopupButton"));
+}
+
+function bindTabListeners() {
+  // 侧边栏长驻时，主窗口切换标签页自动感知
+  chrome.tabs.onActivated.addListener(async () => {
+    await loadCurrentTabUrl();
+    render();
+  });
+
+  // 主窗口标签页加载完成或地址变更时自动感知
+  chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+    if (changeInfo.status === "complete" || changeInfo.url) {
+      await loadCurrentTabUrl();
+      render();
+    }
+  });
+
+  // 监听来自其他页面（如后台快捷键、Popup、Dashboard 等）的数据存储变动
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local") {
+      if (changes[ITEMS_KEY]) {
+        items = Array.isArray(changes[ITEMS_KEY].newValue) ? changes[ITEMS_KEY].newValue.map(normalizeItem) : [];
+        render();
+      }
+      if (changes[SIDE_PANEL_PREF_KEY]) {
+        isDefaultSidePanel = Boolean(changes[SIDE_PANEL_PREF_KEY].newValue);
+        updateDefaultModeUI();
+      }
+    }
+  });
 }
 
 async function loadItems() {
@@ -125,7 +185,7 @@ async function saveCurrentTab() {
       title: meta.title || tab.title || targetUrl,
       url: targetUrl,
       description: meta.description || "",
-      source: "popup"
+      source: "sidepanel"
     });
     showMessage(t("messageSavedCurrent"));
   } finally {
@@ -264,6 +324,8 @@ function renderItem(item) {
   const url = fragment.querySelector(".item-url");
   const description = fragment.querySelector(".item-description");
   const tags = fragment.querySelector(".item-tags");
+  const note = fragment.querySelector(".item-note");
+  const openTabButton = fragment.querySelector(".open-tab-btn");
   const readerButton = fragment.querySelector(".reader-button");
   const statusButton = fragment.querySelector(".status-button");
   const markdownButton = fragment.querySelector(".markdown-button");
@@ -290,6 +352,13 @@ function renderItem(item) {
   checkbox.checked = selectedIds.has(item.id);
   checkbox.setAttribute("aria-label", t("selectItemLabel"));
 
+  if (openTabButton) {
+    openTabButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      chrome.tabs.create({ url: item.url });
+    });
+  }
+
   readerButton.addEventListener("click", () => {
     chrome.tabs.create({ url: chrome.runtime.getURL(`reader.html?id=${item.id}`) });
   });
@@ -310,103 +379,101 @@ function renderItem(item) {
   });
   pinButton.addEventListener("click", () => updateItem(item.id, { pinned: !item.pinned }));
   checkbox.addEventListener("change", () => setSelected(item.id, checkbox.checked));
-  title.addEventListener("click", (event) => {
-    if (!selectionMode) {
+
+  // 左键点击标题：直接在当前活动的主标签页中加载该网页，实现一边看列表一边逐一查阅
+  title.addEventListener("click", async (event) => {
+    if (selectionMode) {
+      event.preventDefault();
+      setSelected(item.id, !selectedIds.has(item.id));
+      return;
+    }
+    // 如果按住了 Ctrl / Meta / Shift，保留新标签页打开行为
+    if (event.ctrlKey || event.metaKey || event.shiftKey) {
       return;
     }
     event.preventDefault();
-    setSelected(item.id, !selectedIds.has(item.id));
-    checkbox.checked = selectedIds.has(item.id);
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        await chrome.tabs.update(tab.id, { url: item.url });
+        currentTabUrl = item.url;
+        render();
+      } else {
+        chrome.tabs.create({ url: item.url });
+      }
+    } catch {
+      chrome.tabs.create({ url: item.url });
+    }
   });
 
   return fragment;
 }
 
-async function updateItem(id, patch) {
-  items = items.map((item) => {
-    if (item.id !== id) {
-      return item;
-    }
-
-    return normalizeItem({
-      ...item,
-      ...patch,
-      updatedAt: new Date().toISOString()
-    });
-  });
-  await persistItems();
-  render();
-}
-
-async function deleteItem(id) {
-  items = items.filter((item) => item.id !== id);
-  await persistItems();
-  render();
-}
-
 function getFilteredItems() {
-  const keyword = els.searchInput.value.trim().toLowerCase();
+  const query = els.searchInput.value.trim().toLowerCase();
   const status = els.statusFilter.value;
 
   return items.filter((item) => {
-    const statusMatched = status === "all" || item.status === status;
-    const tagMatched = !activeTag || item.tags.includes(activeTag);
-    const keywordMatched = !keyword || [
+    const matchStatus = status === "all" ? true : item.status === status;
+    const matchTag = !activeTag || item.tags.includes(activeTag);
+    const matchQuery = !query || [
       item.title,
       item.description,
       item.url,
       item.note,
       item.tags.join(" ")
-    ]
-      .join(" ")
-      .toLowerCase()
-      .includes(keyword);
+    ].join(" ").toLowerCase().includes(query);
 
-    return statusMatched && tagMatched && keywordMatched;
+    return matchStatus && matchTag && matchQuery;
   });
 }
 
-async function clearDoneItems() {
-  const doneCount = items.filter((item) => item.status === "done").length;
-  if (!doneCount) {
-    showMessage(t("messageNoDoneItems"));
+function getAllTags() {
+  const set = new Set();
+  for (const item of items) {
+    for (const tag of item.tags) {
+      set.add(tag);
+    }
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+}
+
+async function updateItem(id, patch) {
+  const index = items.findIndex((item) => item.id === id);
+  if (index === -1) {
     return;
   }
 
-  items = items.filter((item) => item.status !== "done");
+  items[index] = normalizeItem({
+    ...items[index],
+    ...patch,
+    updatedAt: new Date().toISOString()
+  });
+
   await persistItems();
   render();
-  showMessage(t("messageClearedDone", String(doneCount)));
 }
 
-function enterSelectionMode() {
-  selectionMode = true;
-  selectedIds.clear();
-  els.batchToggleButton.hidden = true;
-  els.batchBar.hidden = false;
+async function deleteItem(id) {
+  selectedIds.delete(id);
+  items = items.filter((item) => item.id !== id);
+  await persistItems();
   render();
+  showMessage(t("messageDeletedLink"));
 }
 
-function exitSelectionMode() {
-  selectionMode = false;
-  selectedIds.clear();
-  els.batchToggleButton.hidden = false;
-  els.batchBar.hidden = true;
-  els.batchTagRow.hidden = true;
-  els.batchTagInput.value = "";
-  render();
-}
-
-function updateBatchBar() {
-  els.selectionCount.textContent = t("selectionCount", String(selectedIds.size));
-  const hasSelection = selectedIds.size > 0;
-  els.batchTagButton.disabled = !hasSelection;
-  els.batchDoneButton.disabled = !hasSelection;
-  els.batchDeleteButton.disabled = !hasSelection;
-
-  const visibleIds = getFilteredItems().map((item) => item.id);
-  const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
-  els.selectAllButton.textContent = allSelected ? t("deselectAllButton") : t("selectAllButton");
+function normalizeUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
+  } catch {
+    try {
+      const parsed = new URL(`https://${value}`);
+      return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
+    } catch {
+      return "";
+    }
+  }
 }
 
 function setSelected(id, checked) {
@@ -415,16 +482,58 @@ function setSelected(id, checked) {
   } else {
     selectedIds.delete(id);
   }
-  updateBatchBar();
+  render();
+}
+
+function enterSelectionMode() {
+  selectionMode = true;
+  els.batchTagRow.hidden = true;
+  render();
+}
+
+function exitSelectionMode() {
+  selectionMode = false;
+  selectedIds.clear();
+  els.batchTagRow.hidden = true;
+  render();
 }
 
 function toggleSelectAll() {
-  const visibleIds = getFilteredItems().map((item) => item.id);
-  const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
-  for (const id of visibleIds) {
-    setSelected(id, !allSelected);
+  const visible = getFilteredItems();
+  const visibleIds = visible.map((item) => item.id);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+
+  if (allVisibleSelected) {
+    for (const id of visibleIds) {
+      selectedIds.delete(id);
+    }
+  } else {
+    for (const id of visibleIds) {
+      selectedIds.add(id);
+    }
   }
   render();
+}
+
+function updateBatchBar() {
+  if (!selectionMode) {
+    els.batchBar.hidden = true;
+    return;
+  }
+
+  els.batchBar.hidden = false;
+  const count = selectedIds.size;
+  els.selectionCount.textContent = t("selectedCount", String(count));
+
+  const visible = getFilteredItems();
+  const visibleIds = visible.map((item) => item.id);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  els.selectAllButton.textContent = allVisibleSelected ? t("unselectAllButton") : t("selectAllButton");
+
+  const hasSelection = count > 0;
+  els.batchTagButton.disabled = !hasSelection;
+  els.batchDoneButton.disabled = !hasSelection;
+  els.batchDeleteButton.disabled = !hasSelection;
 }
 
 function toggleBatchTagRow() {
@@ -435,27 +544,25 @@ function toggleBatchTagRow() {
 }
 
 async function applyBatchTags() {
-  const tags = parseTags(els.batchTagInput.value);
-  if (!tags.length) {
-    showMessage(t("messageBatchNoTags"));
+  const rawTags = els.batchTagInput.value.trim();
+  if (!rawTags || !selectedIds.size) {
     return;
   }
-  if (!selectedIds.size) {
-    showMessage(t("messageBatchNoSelection"));
+
+  const newTags = parseTags(rawTags);
+  if (!newTags.length) {
     return;
   }
 
   const now = new Date().toISOString();
-  items = items.map((item) => {
-    if (!selectedIds.has(item.id)) {
-      return item;
+  for (const item of items) {
+    if (selectedIds.has(item.id)) {
+      const merged = Array.from(new Set([...item.tags, ...newTags]));
+      item.tags = merged;
+      item.updatedAt = now;
     }
-    return normalizeItem({
-      ...item,
-      tags: Array.from(new Set([...item.tags, ...tags])),
-      updatedAt: now
-    });
-  });
+  }
+
   await persistItems();
   els.batchTagInput.value = "";
   els.batchTagRow.hidden = true;
@@ -465,38 +572,55 @@ async function applyBatchTags() {
 
 async function batchMarkDone() {
   if (!selectedIds.size) {
-    showMessage(t("messageBatchNoSelection"));
     return;
   }
 
   const now = new Date().toISOString();
-  const count = selectedIds.size;
-  items = items.map((item) => (
-    selectedIds.has(item.id)
-      ? normalizeItem({ ...item, status: "done", updatedAt: now })
-      : item
-  ));
+  let count = 0;
+  for (const item of items) {
+    if (selectedIds.has(item.id)) {
+      item.status = "done";
+      item.updatedAt = now;
+      count += 1;
+    }
+  }
+
   await persistItems();
-  selectedIds.clear();
-  render();
+  exitSelectionMode();
   showMessage(t("messageBatchDone", String(count)));
 }
 
 async function batchDelete() {
   if (!selectedIds.size) {
-    showMessage(t("messageBatchNoSelection"));
-    return;
-  }
-  if (!confirm(t("confirmBatchDelete", String(selectedIds.size)))) {
     return;
   }
 
   const count = selectedIds.size;
+  if (!confirm(t("confirmBatchDelete", String(count)))) {
+    return;
+  }
+
   items = items.filter((item) => !selectedIds.has(item.id));
   await persistItems();
-  selectedIds.clear();
-  render();
+  exitSelectionMode();
   showMessage(t("messageBatchDeleted", String(count)));
+}
+
+async function clearDoneItems() {
+  const doneCount = items.filter((item) => item.status === "done").length;
+  if (!doneCount) {
+    showMessage(t("messageNoDoneItems"));
+    return;
+  }
+
+  if (!confirm(t("confirmClearDone", String(doneCount)))) {
+    return;
+  }
+
+  items = items.filter((item) => item.status !== "done");
+  await persistItems();
+  render();
+  showMessage(t("messageClearedDone"));
 }
 
 function exportJson() {
@@ -523,22 +647,5 @@ function showMessage(text) {
   window.clearTimeout(showMessage.timer);
   showMessage.timer = window.setTimeout(() => {
     els.message.hidden = true;
-  }, 2200);
-}
-
-function getAllTags() {
-  return Array.from(new Set(items.flatMap((item) => item.tags))).sort((a, b) => a.localeCompare(b));
-}
-
-function normalizeUrl(rawUrl) {
-  try {
-    const hasProtocol = /^[a-z][a-z0-9+.-]*:/i.test(rawUrl);
-    const url = new URL(hasProtocol ? rawUrl : `https://${rawUrl}`);
-    if (!isSupportedWebUrl(url.href)) {
-      return "";
-    }
-    return url.href;
-  } catch {
-    return "";
-  }
+  }, 2600);
 }

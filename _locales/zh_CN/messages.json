@@ -616,5 +616,29 @@
   },
   "dashArticlesEmpty": {
     "message": "暂无相关文章"
+  },
+  "openSidePanelButton": {
+    "message": "侧边栏模式"
+  },
+  "openSidePanelTitle": {
+    "message": "固定到浏览器侧边栏"
+  },
+  "contextMenuOpenSidePanel": {
+    "message": "在侧边栏打开稍后处理"
+  },
+  "sidePanelCloseToPopup": {
+    "message": "在独立弹窗中打开"
+  },
+  "commandOpenSidePanel": {
+    "message": "一键在浏览器侧边栏打开稍后处理"
+  },
+  "toggleDefaultSidePanel": {
+    "message": "点击图标默认打开侧边栏"
+  },
+  "switchToPopupButton": {
+    "message": "恢复弹窗"
+  },
+  "openInNewTab": {
+    "message": "新标签打开"
   }
 }

@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>__MSG_extensionName__</title>
-    <link rel="stylesheet" href="popup.css">
+    <title>__MSG_extensionName__ · __MSG_openSidePanelButton__</title>
+    <link rel="stylesheet" href="sidepanel.css">
   </head>
   <body>
     <main class="app">
@@ -14,7 +14,7 @@
           <p id="countText"></p>
         </div>
         <div class="topbar-actions">
-          <button id="openSidePanelButton" class="sidepanel-launch-btn" type="button" data-i18n-aria-label="openSidePanelTitle" title="在浏览器侧边栏打开">◨ <span data-i18n="openSidePanelButton"></span></button>
+          <button id="toggleDefaultSidePanelButton" class="subtle-btn" type="button" data-i18n-aria-label="toggleDefaultSidePanel" title="默认点击图标打开侧边栏"></button>
           <button id="saveCurrentButton" class="primary" type="button" data-i18n="saveCurrentButton"></button>
         </div>
       </header>
@@ -69,7 +69,10 @@
         <div class="item-head">
           <input class="item-select" type="checkbox">
           <div class="item-title-wrap">
-            <a class="item-title" target="_blank" rel="noreferrer"></a>
+            <div class="title-row">
+              <a class="item-title" href="#" rel="noreferrer"></a>
+              <button class="open-tab-btn" type="button" data-i18n-aria-label="openInNewTab" title="在新标签页中打开">↗</button>
+            </div>
             <p class="item-url"></p>
           </div>
           <button class="pin-button" type="button"></button>
@@ -87,6 +90,6 @@
     </template>
 
     <script src="shared.js"></script>
-    <script src="popup.js"></script>
+    <script src="sidepanel.js"></script>
   </body>
 </html>

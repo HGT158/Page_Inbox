@@ -616,5 +616,29 @@
   },
   "dashArticlesEmpty": {
     "message": "No articles found"
+  },
+  "openSidePanelButton": {
+    "message": "Side Panel"
+  },
+  "openSidePanelTitle": {
+    "message": "Open in browser side panel"
+  },
+  "contextMenuOpenSidePanel": {
+    "message": "Open Page Inbox in Side Panel"
+  },
+  "sidePanelCloseToPopup": {
+    "message": "Open in popup window"
+  },
+  "commandOpenSidePanel": {
+    "message": "Open Page Inbox in browser side panel"
+  },
+  "toggleDefaultSidePanel": {
+    "message": "Open side panel by default on icon click"
+  },
+  "switchToPopupButton": {
+    "message": "Use Popup"
+  },
+  "openInNewTab": {
+    "message": "Open in new tab"
   }
 }

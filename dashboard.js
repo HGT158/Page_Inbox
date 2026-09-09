@@ -14,6 +14,7 @@ const els = {
   exportBookmarksButton: document.querySelector("#exportBookmarksButton"),
   openAiButton: document.querySelector("#openAiButton"),
   openReaderButton: document.querySelector("#openReaderButton"),
+  openSidePanelButton: document.querySelector("#openSidePanelButton"),
   dashSearchInput: document.querySelector("#dashSearchInput"),
   dashStatusFilter: document.querySelector("#dashStatusFilter"),
   dashArticlesList: document.querySelector("#dashArticlesList"),
@@ -44,6 +45,18 @@ function bindEvents() {
   els.openReaderButton.addEventListener("click", () => {
     chrome.tabs.create({ url: chrome.runtime.getURL("reader.html") });
   });
+  if (els.openSidePanelButton) {
+    els.openSidePanelButton.addEventListener("click", async () => {
+      try {
+        if (chrome.sidePanel?.open) {
+          const currentWindow = await chrome.windows.getCurrent();
+          await chrome.sidePanel.open({ windowId: currentWindow.id });
+        }
+      } catch (err) {
+        console.warn("Could not open sidePanel:", err);
+      }
+    });
+  }
   els.dashSearchInput.addEventListener("input", renderArticles);
   els.dashStatusFilter.addEventListener("change", renderArticles);
 }
