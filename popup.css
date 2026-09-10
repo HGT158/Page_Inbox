@@ -618,3 +618,169 @@ textarea:focus {
   animation: serendipityPulse 1.6s ease 2;
   border-color: var(--accent);
 }
+
+/* ⚡ AI 速读按钮 */
+.tldr-button {
+  border-color: #fcd34d;
+  background: #fefce8;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.tldr-button:hover {
+  border-color: #f59e0b;
+  background: #fef3c7;
+}
+
+.tldr-button.is-active {
+  border-color: #f59e0b;
+  background: #fde68a;
+  color: #92400e;
+}
+
+/* 智能标签推荐 */
+.tag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 11px;
+  padding: 1px 0;
+}
+
+.tag-sugg-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.tag-sugg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px dashed #86efac;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 11px;
+  padding: 1px 8px;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: all 0.15s ease;
+}
+
+.tag-sugg-chip:hover {
+  border-color: #16a34a;
+  background: #dcfce7;
+  transform: translateY(-1px);
+}
+
+/* 3 句话速读卡片容器 */
+.item-tldr {
+  margin-top: 4px;
+  border: 1px solid #fde68a;
+  border-left: 3px solid #f59e0b;
+  border-radius: 6px;
+  background: #fffbeb;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #78350f;
+  animation: fadeInTldr 0.2s ease;
+}
+
+@keyframes fadeInTldr {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tldr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed rgba(245, 158, 11, 0.3);
+}
+
+.tldr-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.tldr-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tldr-actions button {
+  min-height: 20px;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: #92400e;
+  cursor: pointer;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
+.tldr-actions button:hover {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.tldr-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #451a03;
+}
+
+.tldr-body.is-loading {
+  color: #b45309;
+  font-style: italic;
+}
+
+.tldr-link {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tldr-button {
+    border-color: #854d0e;
+    background: #362208;
+    color: #fde047;
+  }
+  .tldr-button:hover {
+    background: #452c0a;
+  }
+  .tag-sugg-chip {
+    border-color: #166534;
+    background: #142e1d;
+    color: #86efac;
+  }
+  .tag-sugg-chip:hover {
+    background: #193d25;
+  }
+  .item-tldr {
+    border-color: #854d0e;
+    border-left-color: #d97706;
+    background: #291c0b;
+    color: #fef08a;
+  }
+  .tldr-badge {
+    color: #fde047;
+  }
+  .tldr-actions button {
+    color: #fde047;
+  }
+  .tldr-body {
+    color: #fef9c3;
+  }
+  .tldr-link {
+    color: #60a5fa;
+  }
+}
+

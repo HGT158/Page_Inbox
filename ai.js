@@ -1,4 +1,3 @@
-const AI_SETTINGS_KEY = "laterbox.ai.v1";
 const AI_CHATS_KEY = "laterbox.ai.chats.v1";
 const DEFAULT_AI_SETTINGS = { provider: "auto", baseUrl: "", apiKey: "", model: "", includeContent: true };
 const PAGE_TEXT_LIMIT = 8000;
@@ -29,11 +28,13 @@ const els = {
   apiKeyInput: document.querySelector("#apiKeyInput"),
   includeContentInput: document.querySelector("#includeContentInput"),
   saveSettingsButton: document.querySelector("#saveSettingsButton"),
-  toast: document.querySelector("#aiToast")
+  toast: document.querySelector("#aiToast"),
+  templateChips: Array.from(document.querySelectorAll(".chip.chip-template"))
 };
 
 let items = [];
 let settings = { ...DEFAULT_AI_SETTINGS };
+let features = { ...DEFAULT_FEATURES };
 let chat = [];
 let conversations = [];
 let currentChatId = null;
@@ -51,16 +52,24 @@ async function init() {
   document.title = `${t("extensionName")} · ${t("aiPageTitle")}`;
   await loadSettings();
   await loadItems();
+  features = await loadFeatures();
   await loadChats();
   currentChatId = conversations.length ? [...conversations].sort(byUpdatedDesc)[0].id : null;
   restoreChatIntoMemory();
   bindEvents();
+  applyFeatureVisibility();
   renderItemList();
   renderChat();
   renderChatList();
   updateComposer();
   await updateStatus();
   await refreshPermissionBanner();
+}
+
+function applyFeatureVisibility() {
+  els.templateChips.forEach((chip) => {
+    chip.hidden = !features.promptTemplates;
+  });
 }
 
 function bindEvents() {
@@ -86,10 +95,25 @@ function bindEvents() {
   els.saveSettingsButton.addEventListener("click", saveSettings);
   document.querySelectorAll(".chip").forEach((chip) => {
     chip.addEventListener("click", () => {
-      els.input.value = chip.textContent;
+      if (chip.dataset.promptKey && !features.promptTemplates) {
+        return;
+      }
+      const promptKey = chip.dataset.promptKey;
+      const textToFill = promptKey ? t(promptKey) : chip.textContent;
+      els.input.value = textToFill;
       els.input.focus();
       updateComposer();
+      if (promptKey && !selectedIds.size) {
+        showToast(t("aiNeedSelection"));
+      }
     });
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[FEATURES_KEY]) {
+      features = { ...DEFAULT_FEATURES, ...(changes[FEATURES_KEY].newValue || {}) };
+      applyFeatureVisibility();
+      renderItemList();
+    }
   });
 }
 
@@ -155,16 +179,6 @@ async function ensureEndpointPermission() {
   } catch {
     return false;
   }
-}
-
-function getLanguageModel() {
-  if (typeof LanguageModel !== "undefined") {
-    return LanguageModel;
-  }
-  if (globalThis.ai?.languageModel) {
-    return globalThis.ai.languageModel;
-  }
-  return null;
 }
 
 function resolveProvider(current) {
@@ -562,6 +576,42 @@ function renderItemList() {
     host.className = "li-host";
     host.textContent = hostOf(item.url);
     text.append(title, host);
+
+    const suggestions = features.autoTags ? suggestTags(item, 2) : [];
+    if ((item.tags && item.tags.length > 0) || suggestions.length > 0) {
+      const tagRow = document.createElement("span");
+      tagRow.className = "li-tags";
+      if (item.tags && item.tags.length > 0) {
+        for (const tag of item.tags.slice(0, 3)) {
+          const badge = document.createElement("span");
+          badge.className = "li-tag-badge";
+          badge.textContent = `#${tag}`;
+          tagRow.append(badge);
+        }
+      }
+      for (const tag of suggestions) {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "li-sugg-chip";
+        chip.textContent = `+ ${tag}`;
+        chip.title = `点击为该文章采纳标签 #${tag}`;
+        chip.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          item.tags = Array.from(new Set([...(item.tags || []), tag]));
+          const idx = items.findIndex((saved) => saved.id === item.id);
+          if (idx >= 0) {
+            items[idx].tags = item.tags;
+            await chrome.storage.local.set({ [ITEMS_KEY]: items });
+          }
+          renderItemList();
+          showToast(t("tagSuggestionAdopted", tag));
+        });
+        tagRow.append(chip);
+      }
+      text.append(tagRow);
+    }
+
     row.append(checkbox, text);
     checkbox.addEventListener("change", () => {
       if (checkbox.checked) {

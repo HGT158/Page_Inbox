@@ -38,9 +38,11 @@ const els = {
 };
 
 let items = [];
+let features = { ...DEFAULT_FEATURES };
 let activeTag = "";
 let selectionMode = false;
 const selectedIds = new Set();
+const expandedTldrIds = new Set();
 let currentTabUrl = "";
 let currentPickedItem = null;
 
@@ -50,6 +52,7 @@ async function init() {
   localizeDocument();
   await loadCurrentTabUrl();
   await loadItems();
+  features = await loadFeatures();
   bindEvents();
   render();
 }
@@ -143,6 +146,12 @@ function bindEvents() {
       }
     });
   }
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[FEATURES_KEY]) {
+      features = { ...DEFAULT_FEATURES, ...(changes[FEATURES_KEY].newValue || {}) };
+      render();
+    }
+  });
 }
 
 async function loadItems() {
@@ -314,12 +323,19 @@ function renderItem(item) {
   const url = fragment.querySelector(".item-url");
   const description = fragment.querySelector(".item-description");
   const tags = fragment.querySelector(".item-tags");
+  const tagSuggestions = fragment.querySelector(".tag-suggestions");
   const note = fragment.querySelector(".item-note");
+  const tldrButton = fragment.querySelector(".tldr-button");
   const readerButton = fragment.querySelector(".reader-button");
   const statusButton = fragment.querySelector(".status-button");
   const markdownButton = fragment.querySelector(".markdown-button");
   const deleteButton = fragment.querySelector(".delete-button");
   const pinButton = fragment.querySelector(".pin-button");
+  const tldrContainer = fragment.querySelector(".item-tldr");
+  const tldrBody = fragment.querySelector(".tldr-body");
+  const tldrCopyBtn = fragment.querySelector(".tldr-copy-btn");
+  const tldrRegenBtn = fragment.querySelector(".tldr-regen-btn");
+  const tldrCloseBtn = fragment.querySelector(".tldr-close-btn");
 
   article.dataset.id = item.id;
   article.dataset.pinned = String(Boolean(item.pinned));
@@ -340,6 +356,197 @@ function renderItem(item) {
   pinButton.dataset.pinned = String(Boolean(item.pinned));
   checkbox.checked = selectedIds.has(item.id);
   checkbox.setAttribute("aria-label", t("selectItemLabel"));
+
+  // 1. 智能自动标签建议渲染与交互（需在「更多功能」中开启）
+  if (tagSuggestions) {
+    const suggestions = features.autoTags ? suggestTags(item, 3) : [];
+    if (suggestions.length > 0) {
+      tagSuggestions.hidden = false;
+      tagSuggestions.replaceChildren();
+      const label = document.createElement("span");
+      label.className = "tag-sugg-label";
+      label.textContent = t("tagSuggestionsLabel");
+      tagSuggestions.append(label);
+
+      for (const tag of suggestions) {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "tag-sugg-chip";
+        chip.textContent = `+ ${tag}`;
+        chip.title = `点击采纳标签 #${tag}`;
+        chip.addEventListener("click", async () => {
+          const nextTags = Array.from(new Set([...item.tags, tag]));
+          await updateItem(item.id, { tags: nextTags });
+          showMessage(t("tagSuggestionAdopted", tag));
+        });
+        tagSuggestions.append(chip);
+      }
+    } else {
+      tagSuggestions.hidden = true;
+    }
+  }
+
+  // 2. 3 句话速读 (TL;DR) 交互与流式生成（需在「更多功能」中开启）
+  let abortController = null;
+  const tldrEnabled = Boolean(features.quickTldr);
+  const isExpanded = tldrEnabled && expandedTldrIds.has(item.id);
+  tldrButton.hidden = !tldrEnabled;
+  if (tldrContainer) {
+    tldrContainer.hidden = !isExpanded;
+    if (isExpanded) {
+      tldrButton.classList.add("is-active");
+      if (item.tldr) {
+        tldrBody.className = "tldr-body";
+        tldrBody.textContent = item.tldr;
+      }
+    }
+  }
+
+  async function triggerTldr(forceRefresh = false) {
+    if (!tldrEnabled) {
+      return;
+    }
+    if (!forceRefresh && item.tldr) {
+      tldrContainer.hidden = false;
+      tldrButton.classList.add("is-active");
+      expandedTldrIds.add(item.id);
+      tldrBody.className = "tldr-body";
+      tldrBody.textContent = item.tldr;
+      return;
+    }
+
+    tldrContainer.hidden = false;
+    tldrButton.classList.add("is-active");
+    expandedTldrIds.add(item.id);
+    tldrBody.className = "tldr-body is-loading";
+    tldrBody.textContent = t("tldrLoading");
+
+    if (abortController) {
+      abortController.abort();
+    }
+    const controller = new AbortController();
+    abortController = controller;
+
+    try {
+      let content = "";
+      // 若当前打开标签页正好是该文章，直接无缝快速读取正文
+      if (currentTabUrl && stripHash(item.url) === stripHash(currentTabUrl)) {
+        try {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          if (tab?.id) {
+            const [injection] = await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              func: () => document.body?.innerText?.slice(0, 3500) || ""
+            });
+            content = injection?.result || "";
+          }
+        } catch {
+          content = "";
+        }
+      }
+      if (!content && typeof loadPageText === "function") {
+        try {
+          content = await loadPageText(item.url, 3500);
+        } catch {
+          content = "";
+        }
+      }
+
+      let accumulated = "";
+      let isFirst = true;
+      await generateTldrStream(
+        { title: item.title, url: item.url, description: item.description, content },
+        (delta) => {
+          if (isFirst) {
+            isFirst = false;
+            tldrBody.className = "tldr-body";
+            tldrBody.textContent = "";
+          }
+          accumulated += delta;
+          if (tldrBody.isConnected) {
+            tldrBody.textContent = accumulated;
+          }
+        },
+        controller.signal
+      );
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      const finalSummary = accumulated.trim();
+      if (finalSummary) {
+        item.tldr = finalSummary;
+        const existingIndex = items.findIndex((saved) => saved.id === item.id);
+        if (existingIndex >= 0) {
+          items[existingIndex].tldr = finalSummary;
+          await persistItems();
+        }
+      }
+    } catch (err) {
+      if (controller.signal.aborted) {
+        return;
+      }
+      tldrBody.className = "tldr-body";
+      tldrBody.replaceChildren();
+      if (err && err.code === "AI_NOT_CONFIGURED") {
+        const hint = document.createElement("span");
+        hint.textContent = `${t("tldrNotConfigured")} `;
+        const link = document.createElement("a");
+        link.className = "tldr-link";
+        link.textContent = t("tldrOpenSettings");
+        link.href = "#";
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          chrome.tabs.create({ url: chrome.runtime.getURL("ai.html") });
+        });
+        tldrBody.append(hint, link);
+      } else {
+        tldrBody.textContent = t("aiErrorGeneric", err?.message || String(err));
+      }
+    } finally {
+      if (abortController === controller) {
+        abortController = null;
+      }
+    }
+  }
+
+  tldrButton.addEventListener("click", () => {
+    if (!tldrEnabled) {
+      return;
+    }
+    if (!tldrContainer.hidden) {
+      tldrContainer.hidden = true;
+      tldrButton.classList.remove("is-active");
+      expandedTldrIds.delete(item.id);
+      if (abortController) {
+        abortController.abort();
+      }
+    } else {
+      triggerTldr(false);
+    }
+  });
+
+  tldrCopyBtn?.addEventListener("click", async () => {
+    const text = tldrBody.textContent.trim();
+    if (text) {
+      await navigator.clipboard.writeText(text);
+      showMessage(t("tldrCopied"));
+    }
+  });
+
+  tldrRegenBtn?.addEventListener("click", () => {
+    triggerTldr(true);
+  });
+
+  tldrCloseBtn?.addEventListener("click", () => {
+    tldrContainer.hidden = true;
+    tldrButton.classList.remove("is-active");
+    expandedTldrIds.delete(item.id);
+    if (abortController) {
+      abortController.abort();
+    }
+  });
 
   readerButton.addEventListener("click", () => {
     chrome.tabs.create({ url: chrome.runtime.getURL(`reader.html?id=${item.id}`) });

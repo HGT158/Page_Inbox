@@ -1,6 +1,6 @@
 # Microsoft Edge Add-ons submission notes
 
-Extension: **Page Inbox (网页稍后处理)** · Manifest V3 · Version 0.13.0
+Extension: **Page Inbox (网页稍后处理)** · Manifest V3 · Version 0.14.0
 
 ## Single purpose
 
@@ -70,6 +70,7 @@ No remote code is loaded or executed. All JavaScript, HTML, CSS, and localizatio
 
 ## Version history
 
+- 0.14.0 — Added three opt-in AI enhancements, each off by default and toggled on the More tools page: one-click 3-sentence TL;DR (streaming, cached per item) in popup and side panel; preset prompt templates (contrast, action items, mind map, concepts) in the AI composer; and smart tag suggestions with one-click adoption in popup, side panel, and AI Assistant.
 - 0.13.0 — Added Pure Reader Mode (`reader.html`) with distraction-free layout, 4 color themes, font scaling, drawer switching, and read time estimation; added native browser Side Panel (`sidepanel.html`) with Alt+B shortcut, in-place active tab navigation, and default icon action toggle; added anti-backlog Serendipity ("random pick" & aged gems review) across popup, side panel, and dashboard.
 - 0.12.0 — Added Alt+S global keyboard shortcut for instant page saving; added dynamic toolbar action badge for pending inbox count and saved-page checkmark (`✓`) indicator; unified URL priority and added `tabs` permission for real-time badge state; added visual saved page highlighting in popup.
 - 0.11.0 — Added local Mermaid diagram rendering (flowcharts, sequence diagrams) in AI replies, with Mermaid's strict security level for generated SVG and automatic fallback to a code block when diagram syntax is invalid; improved AI chat history management.

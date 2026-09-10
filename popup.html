@@ -97,17 +97,31 @@
         </div>
         <p class="item-description"></p>
         <input class="item-tags" type="text" data-i18n-placeholder="tagsPlaceholder">
+        <div class="tag-suggestions" hidden></div>
         <textarea class="item-note" rows="2" data-i18n-placeholder="notePlaceholder"></textarea>
         <div class="item-actions">
+          <button class="tldr-button" type="button" data-i18n-title="tldrButtonTitle">⚡ <span data-i18n="tldrButton"></span></button>
           <button class="reader-button" type="button" data-i18n="readerModeButton"></button>
           <button class="status-button" type="button"></button>
           <button class="markdown-button" type="button" data-i18n="copyMarkdownButton"></button>
           <button class="delete-button danger" type="button" data-i18n="deleteButton"></button>
         </div>
+        <div class="item-tldr" hidden>
+          <div class="tldr-head">
+            <span class="tldr-badge">⚡ <span data-i18n="tldrButtonTitle"></span></span>
+            <div class="tldr-actions">
+              <button class="tldr-copy-btn" type="button" data-i18n-title="copyMarkdownButton" title="复制速读">📋</button>
+              <button class="tldr-regen-btn" type="button" data-i18n-title="tldrRegenerate" title="重新生成">🔄</button>
+              <button class="tldr-close-btn" type="button" data-i18n-title="serendipityClose" title="收起">✕</button>
+            </div>
+          </div>
+          <div class="tldr-body"></div>
+        </div>
       </article>
     </template>
 
     <script src="shared.js"></script>
+    <script src="extractor.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

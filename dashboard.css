@@ -205,6 +205,54 @@ button:disabled {
   padding: 8px 10px;
 }
 
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.feature-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.feature-row:hover {
+  border-color: var(--accent);
+  background: var(--tag-bg);
+}
+
+.feature-row input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.feature-name {
+  font-weight: 600;
+}
+
+.feature-desc {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .card-head-row {
   display: flex;
   align-items: center;

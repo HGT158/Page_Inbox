@@ -722,5 +722,88 @@
         "content": "$1"
       }
     }
+  },
+  "tldrButton": {
+    "message": "TL;DR"
+  },
+  "tldrButtonTitle": {
+    "message": "⚡ 3-Sentence AI Summary"
+  },
+  "tldrLoading": {
+    "message": "⚡ Generating 3 key takeaways…"
+  },
+  "tldrNotConfigured": {
+    "message": "AI model not ready: Please configure API Key in AI Assistant or enable Gemini Nano."
+  },
+  "tldrOpenSettings": {
+    "message": "Open AI Settings"
+  },
+  "tldrRegenerate": {
+    "message": "Regenerate"
+  },
+  "tldrCopied": {
+    "message": "TL;DR Copied"
+  },
+  "aiPromptContrast": {
+    "message": "⚖️ Contrast"
+  },
+  "aiPromptContrastText": {
+    "message": "Compare core viewpoints, technical approaches, and differences across selected articles"
+  },
+  "aiPromptActionItems": {
+    "message": "📋 Action Items"
+  },
+  "aiPromptActionItemsText": {
+    "message": "Extract all actionable to-dos, implementation steps, and concrete recommendations"
+  },
+  "aiPromptMindmap": {
+    "message": "🗺️ Mind Map"
+  },
+  "aiPromptMindmapText": {
+    "message": "Organize the core logic into a Mermaid architecture diagram or flowchart"
+  },
+  "aiPromptConcepts": {
+    "message": "💡 Concepts"
+  },
+  "aiPromptConceptsText": {
+    "message": "List key new concepts and technical terms in the text with plain explanations"
+  },
+  "tagSuggestionsLabel": {
+    "message": "Suggested:"
+  },
+  "tagSuggestionAdopted": {
+    "message": "Added tag #$TAG$",
+    "placeholders": {
+      "tag": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiFeaturesTitle": {
+    "message": "AI Enhancements"
+  },
+  "aiFeaturesDesc": {
+    "message": "These features are off by default and only appear in the popup, side panel, and AI Assistant once enabled."
+  },
+  "featureQuickTldr": {
+    "message": "One-click 3-sentence TL;DR"
+  },
+  "featureQuickTldrDesc": {
+    "message": "Shows a \u201c⚡ TL;DR\u201d action on each item and streams 3 key takeaways so you can judge in 5 seconds whether it is worth a deep read."
+  },
+  "featurePromptTemplates": {
+    "message": "Preset prompt templates"
+  },
+  "featurePromptTemplatesDesc": {
+    "message": "Adds one-tap actions in the AI composer for viewpoint contrast, action items, mind maps, and concept breakdowns."
+  },
+  "featureAutoTags": {
+    "message": "Smart tag suggestions"
+  },
+  "featureAutoTagsDesc": {
+    "message": "Suggests 2-3 tags from the title and body keywords; adopt them with one click in the popup, side panel, or AI Assistant."
+  },
+  "featureSaved": {
+    "message": "Feature toggles saved"
   }
 }

@@ -722,5 +722,88 @@
         "content": "$1"
       }
     }
+  },
+  "tldrButton": {
+    "message": "速读"
+  },
+  "tldrButtonTitle": {
+    "message": "⚡ 一键 AI 3 句话速读"
+  },
+  "tldrLoading": {
+    "message": "⚡ 正在生成 3 句核心要点…"
+  },
+  "tldrNotConfigured": {
+    "message": "AI 模型未就绪：请前往「AI 助手」设置 API Key 或启用内置模型。"
+  },
+  "tldrOpenSettings": {
+    "message": "打开 AI 设置"
+  },
+  "tldrRegenerate": {
+    "message": "重新生成"
+  },
+  "tldrCopied": {
+    "message": "已复制速读"
+  },
+  "aiPromptContrast": {
+    "message": "⚖️ 观点对比"
+  },
+  "aiPromptContrastText": {
+    "message": "对比所选文章在核心观点、技术路线与方案上的差异与异同"
+  },
+  "aiPromptActionItems": {
+    "message": "📋 行动清单"
+  },
+  "aiPromptActionItemsText": {
+    "message": "提取文章中所有可实操的待办事项、执行步骤与落地清单"
+  },
+  "aiPromptMindmap": {
+    "message": "🗺️ 思维导图"
+  },
+  "aiPromptMindmapText": {
+    "message": "将这几篇内容的核心逻辑梳理为 Mermaid 架构图或时序图"
+  },
+  "aiPromptConcepts": {
+    "message": "💡 概念提炼"
+  },
+  "aiPromptConceptsText": {
+    "message": "列出文中涉及的核心新概念与专业术语，并给出通俗易懂的解释"
+  },
+  "tagSuggestionsLabel": {
+    "message": "推荐标签："
+  },
+  "tagSuggestionAdopted": {
+    "message": "已添加标签 #$TAG$",
+    "placeholders": {
+      "tag": {
+        "content": "$1"
+      }
+    }
+  },
+  "aiFeaturesTitle": {
+    "message": "AI 增强功能"
+  },
+  "aiFeaturesDesc": {
+    "message": "以下功能默认关闭，开启后才会在弹窗、侧边栏与 AI 助手中出现。"
+  },
+  "featureQuickTldr": {
+    "message": "一键 AI 3 句话速读"
+  },
+  "featureQuickTldrDesc": {
+    "message": "在文章操作栏显示「⚡ 速读」，流式生成 3 句核心要点，帮你 5 秒判断是否值得精读。"
+  },
+  "featurePromptTemplates": {
+    "message": "预设 Prompt 快捷模板"
+  },
+  "featurePromptTemplatesDesc": {
+    "message": "在 AI 助手输入区预置「观点对比 / 行动清单 / 思维导图 / 概念提炼」常用动作，一键填充提问。"
+  },
+  "featureAutoTags": {
+    "message": "智能自动标签建议"
+  },
+  "featureAutoTagsDesc": {
+    "message": "根据标题与正文关键词推荐 2~3 个标签，在弹窗、侧边栏与 AI 助手中点击即可采纳。"
+  },
+  "featureSaved": {
+    "message": "功能开关已保存"
   }
 }

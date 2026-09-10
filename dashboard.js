@@ -30,10 +30,14 @@ const els = {
   dashSerendipityReadBtn: document.querySelector("#dashSerendipityReadBtn"),
   dashSerendipityOpenBtn: document.querySelector("#dashSerendipityOpenBtn"),
   dashSerendipityDoneBtn: document.querySelector("#dashSerendipityDoneBtn"),
-  dashSerendipityNextBtn: document.querySelector("#dashSerendipityNextBtn")
+  dashSerendipityNextBtn: document.querySelector("#dashSerendipityNextBtn"),
+  featureQuickTldr: document.querySelector("#featureQuickTldr"),
+  featurePromptTemplates: document.querySelector("#featurePromptTemplates"),
+  featureAutoTags: document.querySelector("#featureAutoTags")
 };
 
 let items = [];
+let features = { ...DEFAULT_FEATURES };
 let currentPickedDashItem = null;
 
 init();
@@ -42,6 +46,7 @@ async function init() {
   localizeDocument();
   document.title = `${t("extensionName")} · ${t("dashboardTitle")}`;
   await loadItems();
+  await loadFeatureSettings();
   bindEvents();
   renderAll();
 }
@@ -102,6 +107,30 @@ function bindEvents() {
   }
   els.dashSearchInput.addEventListener("input", renderArticles);
   els.dashStatusFilter.addEventListener("change", renderArticles);
+  bindFeatureToggle(els.featureQuickTldr, "quickTldr");
+  bindFeatureToggle(els.featurePromptTemplates, "promptTemplates");
+  bindFeatureToggle(els.featureAutoTags, "autoTags");
+}
+
+function bindFeatureToggle(input, key) {
+  if (!input) {
+    return;
+  }
+  input.addEventListener("change", async () => {
+    features = await saveFeature(key, input.checked);
+    renderFeatures();
+    showMessage(t("featureSaved"));
+  });
+}
+
+async function loadFeatureSettings() {
+  features = await loadFeatures();
+}
+
+function renderFeatures() {
+  if (els.featureQuickTldr) els.featureQuickTldr.checked = Boolean(features.quickTldr);
+  if (els.featurePromptTemplates) els.featurePromptTemplates.checked = Boolean(features.promptTemplates);
+  if (els.featureAutoTags) els.featureAutoTags.checked = Boolean(features.autoTags);
 }
 
 async function loadItems() {
@@ -122,6 +151,7 @@ function renderAll() {
   renderSerendipity();
   renderUsage();
   renderArticles();
+  renderFeatures();
 }
 
 function renderStats() {
